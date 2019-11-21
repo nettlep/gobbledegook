@@ -89,6 +89,37 @@ public:
 		EHciStaticAddress = (1<<15)
 	};
 
+	// Major Service Classes from www.bluetooth.com/specifications/assigned-numbers/baseband/
+	enum MajorServiceClasses
+	{
+	    ELimitedDiscoverableModeMSC = (1<<13),
+	    EReserved14MSC = (1<<14),
+	    EReserved15MSC = (1<<15),
+	    EPositioningMSC = (1<<16),
+	    ENetworkingMSC = (1<<17),
+	    ERenderingMSC = (1<<18),
+	    ECapturingMSC = (1<<19),
+	    EObjectTransferMSC = (1<<20),
+	    EAudioMSC = (1<<21),
+	    ETelephonyMSC = (1<<22),
+	    EInformationMSC = (1<<23)
+	};
+
+	enum MajorDeviceClasses
+	{
+	    EMiscellaneousMDC = 0x0000,
+	    EComputerMDC = 0x0100,
+	    EPhoneMDC = 0x0200,
+	    ELanNetworkMDC = 0x0300,
+	    EAudioVideoMDC = 0x0400,
+	    EPeripheralMDC = 0x0500,
+	    EImagingMDC = 0x0600,
+	    EWearableMDC = 0x0700,
+	    EToyMDC = 0x0800,
+	    EHealthMDC = 0x0900,
+	    EUncategorizedMDC = 0x1F00
+	};
+
 	struct HciHeader
 	{
 		uint16_t code;
@@ -119,6 +150,150 @@ public:
 			return text;
 		}
 	} __attribute__((packed));
+
+	static std::string printClassOfDevice(uint32_t bitfield) {
+	    //bitfield is actually only 24 bits, but is easy to work with as a uint
+
+	    std::string text = "";
+        // Format #1
+        if( ( bitfield & 0x03 ) == 0x00 ) {
+            std::string majSrvClass = "";
+            if (bitfield & ELimitedDiscoverableModeMSC) { majSrvClass += "Limited Discoverable Mode, "; }
+            if (bitfield & EPositioningMSC) { majSrvClass += "Positioning, "; }
+            if (bitfield & ENetworkingMSC) { majSrvClass += "Networking, "; }
+            if (bitfield & ERenderingMSC) { majSrvClass += "Rendering, "; }
+            if (bitfield & ECapturingMSC) { majSrvClass += "Capturing, "; }
+            if (bitfield & EObjectTransferMSC) { majSrvClass += "Object Transfer, "; }
+            if (bitfield & EAudioMSC) { majSrvClass += "Audio, "; }
+            if (bitfield & ETelephonyMSC) { majSrvClass += "Telephony, "; }
+            if (bitfield & EInformationMSC) { majSrvClass += "Information, "; }
+            if (majSrvClass.length() != 0)
+            {
+                majSrvClass = majSrvClass.substr(0, majSrvClass.length() - 2);
+            }
+
+            text += "  + CoD Format         : 00 (Format #1)\n";
+            text += "  + Major Service Class: " + majSrvClass + "\n";
+
+            // bits 8 through 12 are the major device class
+            uint16_t majorDeviceClass = bitfield & 0x1F00;
+            // bits 2 through 7. shift it back by 2 to make it easy to work with
+            uint8_t minorDeviceClass = (bitfield & 0xFC) >> 2;
+            text += "  + Major Device Class : ";
+            switch(majorDeviceClass) {
+            case EMiscellaneousMDC:
+                text += "Miscellaneous\n"; break;
+            case EComputerMDC:
+                text += "Computer\n";
+                text += "  + Minor Device Class : ";
+                switch(minorDeviceClass) {
+                case 0x00:
+                    text += "Uncategorized\n"; break;
+                case 0x01:
+                    text += "Desktop Workstation\n"; break;
+                case 0x02:
+                    text += "Server-class computer\n"; break;
+                case 0x03:
+                    text += "Laptop\n"; break;
+                case 0x04:
+                    text += "Handheld PC/PDA\n"; break;
+                case 0x05:
+                    text += "Palm-size PC/PDA\n"; break;
+                case 0x06:
+                    text += "Wearable computer\n"; break;
+                case 0x07:
+                    text += "Tablet\n"; break;
+                default:
+                    text += "Unknown Reserved Value: " + Utils::hex(minorDeviceClass) + "\n";
+                }
+                break;
+            case EPhoneMDC:
+                text += "Phone\n";
+                text += "  + Minor Device Class : " + Utils::hex(minorDeviceClass) + "\n";
+                break;
+            case ELanNetworkMDC:
+                text += "Lan/Network Access Point\n";
+                text += "  + Minor Device Class : " + Utils::hex(minorDeviceClass) + "\n";
+                break;
+            case EAudioVideoMDC:
+                text += "Audio/Video\n";
+                text += "  + Minor Device Class : ";
+                switch(minorDeviceClass) {
+                case 0x00:
+                    text += "Uncategorized\n"; break;
+                case 0x01:
+                    text += "Wearable Headset Device\n"; break;
+                case 0x02:
+                    text += "Hands-free Device\n"; break;
+                case 0x03:
+                    text += "Reserved (000011)\n"; break;
+                case 0x04:
+                    text += "Microphone\n"; break;
+                case 0x05:
+                    text += "Loudspeaker\n"; break;
+                case 0x06:
+                    text += "Headphones\n"; break;
+                case 0x07:
+                    text += "Portable Audio\n"; break;
+                case 0x08:
+                    text += "Car Audio\n"; break;
+                case 0x09:
+                    text += "Set-top box\n"; break;
+                case 0x0A:
+                    text += "HiFi Audio Device\n"; break;
+                case 0x0B:
+                    text += "VCR ... really?\n"; break;
+                case 0x0C:
+                    text += "Video Camera\n"; break;
+                case 0x0D:
+                    text += "Camcorder\n"; break;
+                case 0x0E:
+                    text += "Video Monitor\n"; break;
+                case 0x0F:
+                    text += "Video Display and Loudspeaker\n"; break;
+                case 0x10:
+                    text += "Video Conferencing\n"; break;
+                case 0x11:
+                    text += "Reserved (010001)\n"; break;
+                case 0x12:
+                    text += "Gaming/Toy\n"; break;
+                default:
+                    text += "Unknown Reserved Value: " + Utils::hex(minorDeviceClass) + "\n";
+                }
+                break;
+            case EPeripheralMDC:
+                text += "Peripheral\n";
+                text += "  + Minor Device Class : " + Utils::hex(minorDeviceClass) + "\n";
+                break;
+            case EImagingMDC:
+                text += "Imaging\n";
+                text += "  + Minor Device Class : " + Utils::hex(minorDeviceClass) + "\n";
+                break;
+            case EWearableMDC:
+                text += "Wearable\n";
+                text += "  + Minor Device Class : " + Utils::hex(minorDeviceClass) + "\n";
+                break;
+            case EToyMDC:
+                text += "Toy\n";
+                text += "  + Minor Device Class : " + Utils::hex(minorDeviceClass) + "\n";
+                break;
+            case EHealthMDC:
+                text += "Health\n";
+                text += "  + Minor Device Class : " + Utils::hex(minorDeviceClass) + "\n";
+                break;
+            case EUncategorizedMDC:
+                text += "Uncategorized\n";
+                text += "  + Minor Device Class : " + Utils::hex(minorDeviceClass) + "\n";
+                break;
+            default:
+                text += "Unknown Reserved Value: " + Utils::hex(majorDeviceClass) + "\n";
+                text += "  + Minor Device Class : " + Utils::hex(minorDeviceClass) + "\n";
+            }
+        } else {
+            text += "  + CoD data           : " + Utils::hex(bitfield) + "\n";
+        }
+        return text;
+	}
 
 	struct CommandCompleteEvent
 	{
@@ -291,6 +466,43 @@ public:
 		}
 	} __attribute__((packed));
 
+    struct ClassOfDeviceChangedEvent
+    {
+        HciHeader header;
+        uint8_t classOfDevice[3];
+
+        ClassOfDeviceChangedEvent(const std::vector<uint8_t> &data)
+        {
+            *this = *reinterpret_cast<const ClassOfDeviceChangedEvent *>(data.data());
+            toHost();
+
+            // Log it
+            Logger::info(debugText());
+        }
+
+        void toNetwork()
+        {
+            header.toNetwork();
+        }
+
+        void toHost()
+        {
+            header.toHost();
+        }
+
+        std::string debugText()
+        {
+            uint32_t bitfield = (((uint32_t)classOfDevice[0]) << 16) + (((uint32_t)classOfDevice[1]) << 8) + (uint32_t)classOfDevice[2];
+            std::string text = "";
+            text += "> Class of Device Changed event\n";
+            text += "  + Event code         : " + Utils::hex(header.code) + " (" + HciAdapter::kEventTypeNames[header.code] + ")\n";
+            text += "  + Controller Id      : " + Utils::hex(header.controllerId) + "\n";
+            text += "  + Data size          : " + std::to_string(header.dataSize) + " bytes\n";
+            text += printClassOfDevice(bitfield);
+            return text;
+        }
+    } __attribute__((packed));
+
 	struct AdapterSettings
 	{
 		uint32_t masks;
@@ -367,6 +579,7 @@ public:
 
 		std::string debugText()
 		{
+		    uint32_t bitfield = (((uint32_t)classOfDevice[0]) << 16) + (((uint32_t)classOfDevice[1]) << 8) + (uint32_t)classOfDevice[2];
 			std::string text = "";
 			text += "> Controller information\n";
 			text += "  + Current settings   : " + Utils::hex(currentSettings.masks) + "\n";
@@ -375,6 +588,7 @@ public:
 			text += "  + Manufacturer       : " + Utils::hex(manufacturer) + "\n";
 			text += "  + Supported settings : " + supportedSettings.toString() + "\n";
 			text += "  + Current settings   : " + currentSettings.toString() + "\n";
+			text += printClassOfDevice(bitfield);
 			text += "  + Name               : " + std::string(name) + "\n";
 			text += "  + Short name         : " + std::string(shortName);
 			return text;
@@ -475,7 +689,7 @@ public:
 
 private:
 	// Private constructor for our Singleton
-	HciAdapter() : commandResponseLock(commandResponseMutex), activeConnections(0) {}
+	HciAdapter() : commandResponseLock(commandResponseMutex), conditionalValue(-1), activeConnections(0) {}
 
 	// Uses a std::condition_variable to wait for a response event for the given `commandCode` or `timeoutMS` milliseconds.
 	//
