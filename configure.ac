@@ -6,6 +6,7 @@ AC_CHECK_LIB([pthread], pthread_create, [], [AC_MSG_ERROR([pthread library not f
 AC_CHECK_LIB([glib-2.0], g_variant_new, [], [AC_MSG_ERROR([glib-2.0 library not found])])
 AC_CHECK_LIB([gio-2.0], g_dbus_method_invocation_return_dbus_error, [], [AC_MSG_ERROR([gio-2.0 library not found])])
 AC_CHECK_LIB([gobject-2.0], g_object_unref, [], [AC_MSG_ERROR([gobject-2.0 library not found])])
+AC_CHECK_HEADER([bluetooth/bluetooth.h], [], [AC_MSG_ERROR([bluetooth/bluetooth.h header not found])])
 AX_CXX_COMPILE_STDCXX(11)
 AC_PROG_RANLIB
 AC_PROG_CXX
