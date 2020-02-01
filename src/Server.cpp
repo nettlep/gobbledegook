@@ -382,6 +382,8 @@ Server::Server(const std::string &serviceName, const std::string &advertisingNam
 			.onReadValue(CHARACTERISTIC_METHOD_CALLBACK_LAMBDA
 			{
 				const char *pTextString = self.getDataPointer<const char *>("text/string", "");
+				// for longer data, the reading device may ask to read starting at an offset (i.e, iOS devices read in 184 byte chunks)
+				pTextString += ServerUtils::getOffsetFromParameters(pParameters, strlen(pTextString));
 				self.methodReturnValue(pInvocation, pTextString, true);
 			})
 

@@ -34,6 +34,9 @@ struct ServerUtils
 	// Builds the response to the method call `GetManagedObjects` from the D-Bus interface `org.freedesktop.DBus.ObjectManager`
 	static void getManagedObjects(GDBusMethodInvocation *pInvocation);
 
+	// Devices will sometimes perform reads on long buffers in multiple chunks, this returns an offset if that occurs.
+	static uint16_t getOffsetFromParameters(GVariant *params, uint16_t dataLength);
+
 	// WARNING: Hacky code - don't count on this working properly on all systems
 	//
 	// This routine will attempt to parse /proc/cpuinfo to return the CPU count/model. Results are cached on the first call, with
