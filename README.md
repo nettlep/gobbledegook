@@ -316,7 +316,7 @@ Here's how I built it - this will probably work for most or all Ubuntu users:
 
 	./configure --prefix=/usr --libexecdir=/usr/lib \
 	--sysconfdir=/etc --localstatedir=/var --enable-test \
-	--enable-manpages --enable-testing --enable-library \
+	--enable-manpages --enable-testing --enable-library \=-
 	--enable-maintainer-mode --enable-experimental \
 	--enable-deprecated
 	make

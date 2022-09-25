@@ -1,0 +1,860 @@
+
+ServerUtils.h,66
+struct ServerUtils32,864
+	static void getManagedObjects(35,1010
+
+DBusInterface.h,532
+#define INTERFACE_METHOD_CALLBACK_LAMBDA 47,1493
+#define TRY_GET_INTERFACE_OF_TYPE(57,1763
+#define TRY_GET_CONST_INTERFACE_OF_TYPE(62,1939
+struct DBusInterface71,2433
+	typedef void (*MethodCallback)MethodCallback76,2544
+	typedef void (*EventCallback)EventCallback77,2741
+	DBusInterface(80,2897
+	virtual ~DBusInterface(81,2957
+	virtual const std::string getInterfaceType(84,3040
+	DBusObject &owner;owner128,4792
+	std::string name;129,4812
+	std::list<DBusMethod> methods;130,4831
+	std::list<TickEvent> events;131,4863
+
+HciAdapter.h,3684
+class HciAdapter39,980
+	static const char * const kCommandCodeNames[kCommandCodeNames56,1414
+	static const char * const kEventTypeNames[kEventTypeNames61,1587
+	static const char * const kStatusCodes[kStatusCodes65,1733
+	enum HciControllerSettings72,1842
+		EHciPowered 74,1873
+		EHciConnectable 75,1897
+		EHciFastConnectable 76,1925
+		EHciDiscoverable 77,1957
+		EHciBondable 78,1986
+		EHciLinkLevelSecurity 79,2011
+		EHciSecureSimplePairing 80,2045
+		EHciBasicRate_EnhancedDataRate 81,2081
+		EHciHighSpeed 82,2124
+		EHciLowEnergy 83,2150
+		EHciAdvertising 84,2176
+		EHciSecureConnections 85,2205
+		EHciDebugKeys 86,2240
+		EHciPrivacy 87,2267
+		EHciControllerConfiguration 88,2292
+		EHciStaticAddress 89,2333
+	struct HciHeader92,2368
+		uint16_t code;94,2389
+		uint16_t controllerId;95,2406
+		uint16_t dataSize;96,2431
+		void toNetwork(98,2453
+		void toHost(105,2613
+		std::string debugText(112,2773
+	struct CommandCompleteEvent123,3175
+		HciHeader header;125,3207
+		uint16_t commandCode;126,3227
+		uint8_t status;127,3251
+		CommandCompleteEvent(129,3270
+		void toNetwork(138,3467
+		void toHost(144,3568
+		std::string debugText(150,3664
+	struct CommandStatusEvent163,4289
+		HciHeader header;165,4319
+		uint16_t commandCode;166,4339
+		uint8_t status;167,4363
+		CommandStatusEvent(169,4382
+		void toNetwork(178,4575
+		void toHost(184,4676
+		std::string debugText(190,4772
+	struct DeviceConnectedEvent203,5443
+		HciHeader header;205,5475
+		uint8_t address[address206,5495
+		uint8_t addressType;207,5517
+		uint32_t flags;208,5540
+		uint16_t eirDataLength;209,5558
+		DeviceConnectedEvent(211,5585
+		void toNetwork(220,5782
+		void toHost(227,5925
+		std::string debugText(234,6064
+	struct DeviceDisconnectedEvent254,6969
+		HciHeader header;256,7004
+		uint8_t address[address257,7024
+		uint8_t addressType;258,7046
+		uint8_t reason;259,7069
+		DeviceDisconnectedEvent(261,7088
+		void toNetwork(270,7291
+		void toHost(275,7342
+		std::string debugText(280,7387
+	struct AdapterSettings294,8049
+		uint32_t masks;296,8076
+		void toHost(298,8095
+		bool isSet(303,8159
+		std::string toString(309,8299
+		std::string debugText(337,9378
+	struct ControllerInformation350,9839
+		uint8_t address[address352,9872
+		uint8_t bluetoothVersion;353,9927
+		uint16_t manufacturer;354,9978
+		AdapterSettings supportedSettings;355,10028
+		AdapterSettings currentSettings;356,10132
+		uint8_t classOfDevice[classOfDevice357,10247
+		char name[name358,10296
+		char shortName[shortName359,10350
+		void toHost(361,10411
+		std::string debugText(368,10549
+	struct VersionInformation384,11326
+		uint8_t version;386,11356
+		uint16_t revision;387,11375
+		void toHost(389,11397
+		std::string debugText(394,11467
+	struct LocalName404,11748
+		char name[name406,11769
+		char shortName[shortName407,11787
+		std::string debugText(409,11810
+	static HciAdapter &getInstance(getInstance424,12153
+	AdapterSettings getAdapterSettings(430,12243
+	ControllerInformation getControllerInformation(431,12309
+	VersionInformation getVersionInformation(432,12393
+	LocalName getLocalName(433,12468
+	int getActiveConnectionCount(434,12516
+	HciAdapter(478,14134
+	HciSocket hciSocket;491,14801
+	static std::thread eventThread;494,14922
+	AdapterSettings adapterSettings;497,14984
+	ControllerInformation controllerInformation;498,15018
+	VersionInformation versionInformation;499,15064
+	LocalName localName;500,15104
+	std::condition_variable cvCommandResponse;502,15127
+	std::mutex commandResponseMutex;503,15171
+	std::unique_lock<std::mutex> commandResponseLock;504,15205
+	int conditionalValue;505,15256
+	int activeConnections;508,15312
+
+GattProperty.cpp,661
+namespace ggk 30,857
+GattProperty::GattProperty(36,1104
+const std::string &GattProperty::getName(getName46,1375
+GattProperty &GattProperty::setName(setName55,1645
+const GVariant *GattProperty::getValue(getValue66,1794
+GattProperty &GattProperty::setValue(setValue75,2060
+GDBusInterfaceGetPropertyFunc GattProperty::getGetterFunc(getGetterFunc86,2310
+GattProperty &GattProperty::setGetterFunc(setGetterFunc95,2671
+GDBusInterfaceSetPropertyFunc GattProperty::getSetterFunc(getSetterFunc102,2895
+GattProperty &GattProperty::setSetterFunc(setSetterFunc111,3256
+std::string GattProperty::generateIntrospectionXML(generateIntrospectionXML118,3467
+
+HciSocket.cpp,458
+namespace ggk 42,1481
+HciSocket::HciSocket(45,1535
+HciSocket::~HciSocket(~HciSocket53,1680
+bool HciSocket::connect(connect61,1844
+bool HciSocket::isConnected(isConnected91,2538
+void HciSocket::disconnect(disconnect97,2637
+bool HciSocket::read(read119,3157
+bool HciSocket::write(write168,4264
+bool HciSocket::write(write176,4504
+bool HciSocket::waitForDataOrShutdown(waitForDataOrShutdown197,4971
+void HciSocket::logErrno(logErrno225,5495
+
+GattCharacteristic.cpp,818
+namespace ggk 34,1147
+GattCharacteristic::GattCharacteristic(44,1377
+GattService &GattCharacteristic::gattCharacteristicEnd(gattCharacteristicEnd52,1693
+bool GattCharacteristic::callMethod(callMethod58,1849
+GattCharacteristic &GattCharacteristic::onEvent(onEvent76,2654
+void GattCharacteristic::tickEvents(tickEvents85,3066
+GattCharacteristic &GattCharacteristic::onReadValue(onReadValue101,3472
+GattCharacteristic &GattCharacteristic::onWriteValue(onWriteValue118,3985
+GattCharacteristic &GattCharacteristic::onUpdatedValue(onUpdatedValue135,4873
+bool GattCharacteristic::callOnUpdatedValue(callOnUpdatedValue158,5856
+GattDescriptor &GattCharacteristic::gattDescriptorBegin(gattDescriptorBegin188,7019
+void GattCharacteristic::sendChangeNotificationVariant(sendChangeNotificationVariant205,7997
+
+../include/Gobbledegook.h,444
+	typedef void (*GGKLogReceiver)GGKLogReceiver68,2730
+	typedef const void *(*GGKServerDataGetter)GGKServerDataGetter93,4059
+	typedef int (*GGKServerDataSetter)GGKServerDataSetter112,4842
+	enum GGKServerRunState255,11813
+		EUninitialized,257,11840
+		EInitializing,258,11858
+		ERunning,259,11875
+		EStopping,260,11887
+		EStopped261,11900
+	enum GGKServerHealth286,12996
+		EOk,288,13021
+		EFailedInit,289,13028
+		EFailedRun290,13043
+
+Logger.cpp,1789
+namespace ggk 52,2427
+GGKLogReceiver Logger::logReceiverDebug 59,2590
+GGKLogReceiver Logger::logReceiverInfo 62,2754
+GGKLogReceiver Logger::logReceiverStatus 65,2919
+GGKLogReceiver Logger::logReceiverWarn 68,3084
+GGKLogReceiver Logger::logReceiverError 71,3248
+GGKLogReceiver Logger::logReceiverFatal 74,3413
+GGKLogReceiver Logger::logReceiverAlways 77,3579
+GGKLogReceiver Logger::logReceiverTrace 80,3745
+void Logger::registerDebugReceiver(registerDebugReceiver88,4010
+void Logger::registerInfoReceiver(registerInfoReceiver92,4301
+void Logger::registerStatusReceiver(registerStatusReceiver96,4592
+void Logger::registerWarnReceiver(registerWarnReceiver100,4885
+void Logger::registerErrorReceiver(registerErrorReceiver104,5175
+void Logger::registerFatalReceiver(registerFatalReceiver108,5467
+void Logger::registerAlwaysReceiver(registerAlwaysReceiver112,5760
+void Logger::registerTraceReceiver(registerTraceReceiver116,6054
+void Logger::debug(debug123,6219
+void Logger::debug(debug126,6375
+void Logger::debug(debug129,6526
+void Logger::info(info132,6725
+void Logger::info(info135,6877
+void Logger::info(info138,7024
+void Logger::status(status141,7222
+void Logger::status(status144,7382
+void Logger::status(status147,7537
+void Logger::warn(warn150,7739
+void Logger::warn(warn153,7891
+void Logger::warn(warn156,8038
+void Logger::error(error159,8235
+void Logger::error(error162,8391
+void Logger::error(error165,8542
+void Logger::fatal(fatal168,8742
+void Logger::fatal(fatal171,8898
+void Logger::fatal(fatal174,9049
+void Logger::always(always177,9250
+void Logger::always(always180,9410
+void Logger::always(always183,9565
+void Logger::trace(trace186,9768
+void Logger::trace(trace189,9924
+void Logger::trace(trace192,10075
+
+DBusMethod.h,521
+struct DBusMethod44,1285
+	typedef void (*Callback)Callback47,1336
+	DBusMethod(50,1643
+	const std::string &getName(getName57,1833
+	DBusMethod &setName(setName62,2030
+	const std::vector<std::string> &getInArgs(getInArgs65,2185
+	const std::string &getOutArgs(getOutArgs68,2328
+	DBusMethod &setArgs(setArgs73,2547
+	void call(88,2908
+	const DBusInterface *pOwner;pOwner106,3898
+	std::string name;107,3928
+	std::vector<std::string> inArgs;108,3947
+	std::string outArgs;109,3981
+	Callback callback;110,4003
+
+Mgmt.h,4355
+struct Mgmt36,1098
+	enum EventTypes53,1480
+		EInvalidEvent 55,1500
+		ECommandCompleteEvent 56,1566
+		ECommandStatusEvent 57,1632
+		EControllerErrorEvent 58,1698
+		EIndexAddedEvent 59,1764
+		EIndexRemovedEvent 60,1830
+		ENewSettingsEvent 61,1896
+		EClassOfDeviceChangedEvent 62,1962
+		ELocalNameChangedEvent 63,2028
+		ENewLinkKeyEvent 64,2094
+		ENewLongTermKeyEvent 65,2160
+		EDeviceConnectedEvent 66,2226
+		EDeviceDisconnectedEvent 67,2292
+		EConnectFailedEvent 68,2358
+		EPINCodeRequestEvent 69,2424
+		EUserConfirmationRequestEvent 70,2490
+		EUserPasskeyRequestEvent 71,2556
+		EAuthenticationFailedEvent 72,2622
+		EDeviceFoundEvent 73,2688
+		EDiscoveringEvent 74,2754
+		EDeviceBlockedEvent 75,2820
+		EDeviceUnblockedEvent 76,2886
+		EDeviceUnpairedEvent 77,2952
+		EPasskeyNotifyEvent 78,3018
+		ENewIdentityResolvingKeyEvent 79,3084
+		ENewSignatureResolvingKeyEvent 80,3150
+		EDeviceAddedEvent 81,3216
+		EDeviceRemovedEvent 82,3282
+		ENewConnectionParameterEvent 83,3348
+		EUnconfiguredIndexAddedEvent 84,3414
+		EUnconfiguredIndexRemovedEvent 85,3480
+		ENewConfigurationOptionsEvent 86,3546
+		EExtendedIndexAddedEvent 87,3612
+		EExtendedIndexRemovedEvent 88,3678
+		ELocalOutOfBandExtendedDataUpdatedEvent 89,3744
+		EAdvertisingAddedEvent 90,3810
+		EAdvertisingRemovedEvent 91,3876
+		EExtendedControllerInformationChangedEvent 92,3942
+	enum CommandCodes96,4082
+		EInvalidCommand 98,4104
+		EReadVersionInformationCommand 99,4170
+		EReadSupportedCommandsCommand 100,4236
+		EReadControllerIndexListCommand 101,4302
+		EReadControllerInformationCommand 102,4368
+		ESetPoweredCommand 103,4434
+		ESetDiscoverableCommand 104,4500
+		ESetConnectableCommand 105,4566
+		ESetFastConnectableCommand 106,4632
+		ESetBondableCommand 107,4698
+		ESetLinkSecurityCommand 108,4764
+		ESetSecureSimplePairingCommand 109,4830
+		ESetHighSpeedCommand 110,4896
+		ESetLowEnergyCommand 111,4962
+		ESetDeviceClass 112,5028
+		ESetLocalNameCommand 113,5094
+		EAddUUIDCommand 114,5160
+		ERemoveUUIDCommand 115,5226
+		ELoadLinkKeysCommand 116,5292
+		ELoadLongTermKeysCommand 117,5358
+		EDisconnectCommand 118,5424
+		EGetConnectionsCommand 119,5490
+		EPINCodeReplyCommand 120,5556
+		EPINCodeNegativeReplyCommand 121,5622
+		ESetIOCapabilityCommand 122,5688
+		EPairDeviceCommand 123,5754
+		ECancelPairDeviceCommand 124,5820
+		EUnpairDeviceCommand 125,5886
+		EUserConfirmationReplyCommand 126,5952
+		EUserConfirmationNegativeReplyCommand 127,6018
+		EUserPasskeyReplyCommand 128,6084
+		EUserPasskeyNegativeReplyCommand 129,6150
+		EReadLocalOutOfBandDataCommand 130,6216
+		EAddRemoteOutOfBandDataCommand 131,6282
+		ERemoveRemoteOutOfBandDataCommand 132,6348
+		EStartDiscoveryCommand 133,6414
+		EStopDiscoveryCommand 134,6480
+		EConfirmNameCommand 135,6546
+		EBlockDeviceCommand 136,6612
+		EUnblockDeviceCommand 137,6678
+		ESetDeviceIDCommand 138,6744
+		ESetAdvertisingCommand 139,6810
+		ESetBREDRCommand 140,6876
+		ESetStaticAddressCommand 141,6942
+		ESetScanParametersCommand 142,7008
+		ESetSecureConnectionsCommand 143,7074
+		ESetDebugKeysCommand 144,7140
+		ESetPrivacyCommand 145,7206
+		ELoadIdentityResolvingKeysCommand 146,7272
+		EGetConnectionInformationCommand 147,7338
+		EGetClockInformationCommand 148,7404
+		EAddDeviceCommand 149,7470
+		ERemoveDeviceCommand 150,7536
+		ELoadConnectionParametersCommand 151,7602
+		EReadUnconfiguredControllerIndexListCommand 152,7668
+		EReadControllerConfigurationInformationCommand 153,7734
+		ESetExternalConfigurationCommand 154,7800
+		ESetPublicAddressCommand 155,7866
+		EStartServiceDiscoveryCommand 156,7932
+		EReadLocalOutOfBandExtendedDataCommand 157,7998
+		EReadExtendedControllerIndexListCommand 158,8064
+		EReadAdvertisingFeaturesCommand 159,8130
+		EAddAdvertisingCommand 160,8196
+		ERemoveAdvertisingCommand 161,8262
+		EGetAdvertisingSizeInformationCommand 162,8328
+		EStartLimitedDiscoveryCommand 163,8394
+		EReadExtendedControllerInformationCommand 164,8460
+		ESetAppearanceCommand 165,8526
+	Mgmt(172,8801
+	bool setName(181,9331
+	bool setDiscoverable(188,9599
+	bool setState(195,9840
+	bool setPowered(200,10050
+	bool setBredr(205,10207
+	bool setSecureConnections(210,10386
+	bool setBondable(215,10558
+	bool setConnectable(220,10721
+	bool setLE(225,10878
+	bool setAdvertising(231,11119
+	uint16_t controllerIndex;252,11700
+
+DBusObject.cpp,907
+namespace ggk 49,2118
+DBusObject::DBusObject(54,2253
+DBusObject::DBusObject(62,2447
+bool DBusObject::isPublished(isPublished72,2646
+const DBusObjectPath &DBusObject::getPathNode(getPathNode80,2846
+DBusObjectPath DBusObject::getPath(getPath88,3067
+DBusObject &DBusObject::getParent(getParent104,3441
+const std::list<DBusObject> &DBusObject::getChildren(getChildren110,3540
+DBusObject &DBusObject::addChild(addChild116,3654
+const DBusObject::InterfaceList &DBusObject::getInterfaces(getInterfaces123,3852
+GattService &DBusObject::gattServiceBegin(gattServiceBegin131,4136
+std::shared_ptr<const DBusInterface> DBusObject::findInterface(findInterface145,4628
+bool DBusObject::callMethod(callMethod171,5317
+void DBusObject::tickEvents(tickEvents199,6154
+std::string DBusObject::generateIntrospectionXML(generateIntrospectionXML217,6864
+void DBusObject::emitSignal(emitSignal259,8210
+
+GattDescriptor.h,590
+#define DESCRIPTOR_UPDATED_VALUE_CALLBACK_LAMBDA 48,1551
+#define DESCRIPTOR_EVENT_CALLBACK_LAMBDA 55,1703
+#define DESCRIPTOR_METHOD_CALLBACK_LAMBDA 63,1866
+struct GattDescriptor 77,2454
+	typedef void (*MethodCallback)MethodCallback82,2583
+	typedef void (*EventCallback)EventCallback83,2781
+	typedef bool (*UpdatedValueCallback)UpdatedValueCallback84,2912
+	GattDescriptor(94,3246
+	virtual ~GattDescriptor(95,3343
+	virtual const std::string getInterfaceType(98,3429
+	GattCharacteristic &characteristic;characteristic173,6905
+	UpdatedValueCallback pOnUpdatedValueFunc;174,6942
+
+Utils.h,366
+struct Utils43,1321
+	static void trimBeginInPlace(50,1655
+	static void trimEndInPlace(53,1734
+	static void trimInPlace(56,1817
+	static uint8_t endianToHost(186,8287
+	static uint8_t endianToHci(191,8484
+	static uint16_t endianToHost(194,8602
+	static uint16_t endianToHci(197,8732
+	static uint32_t endianToHost(200,8861
+	static uint32_t endianToHci(203,8991
+
+GattInterface.h,619
+struct GattInterface 49,1675
+	GattInterface(52,1739
+	virtual ~GattInterface(53,1799
+	T &addProperty(addProperty70,2317
+	T &addProperty(addProperty81,2753
+	T &addProperty(addProperty88,3070
+	T &addProperty(addProperty95,3444
+	T &addProperty(addProperty102,3798
+	T &addProperty(addProperty109,4157
+	T &addProperty(addProperty116,4531
+	T &addProperty(addProperty123,4901
+	T &addProperty(addProperty130,5252
+	T getDataValue(143,5899
+	T getDataPointer(157,6505
+	bool setDataValue(172,7126
+	bool setDataPointer(186,7730
+	void methodReturnValue(206,8943
+	std::list<GattProperty> properties;222,9536
+
+ServerUtils.cpp,329
+namespace ggk 42,1208
+static void addManagedObjectsNode(59,2031
+void ServerUtils::getManagedObjects(getManagedObjects183,5510
+std::string ServerUtils::getCpuInfo(getCpuInfo203,6336
+GVariant *ServerUtils::gvariantCurrentTime(gvariantCurrentTime261,7904
+GVariant *ServerUtils::gvariantLocalTime(gvariantLocalTime289,9460
+
+GattDescriptor.cpp,580
+namespace ggk 31,1091
+GattDescriptor::GattDescriptor(41,1320
+GattCharacteristic &GattDescriptor::gattDescriptorEnd(gattDescriptorEnd49,1659
+bool GattDescriptor::callMethod(callMethod59,1832
+GattDescriptor &GattDescriptor::onEvent(onEvent77,2625
+void GattDescriptor::tickEvents(tickEvents86,3025
+GattDescriptor &GattDescriptor::onReadValue(onReadValue102,3423
+GattDescriptor &GattDescriptor::onWriteValue(onWriteValue119,3921
+GattDescriptor &GattDescriptor::onUpdatedValue(onUpdatedValue136,4786
+bool GattDescriptor::callOnUpdatedValue(callOnUpdatedValue159,5755
+
+DBusMethod.cpp,138
+namespace ggk 32,1077
+DBusMethod::DBusMethod(35,1208
+std::string DBusMethod::generateIntrospectionXML(generateIntrospectionXML52,1675
+
+Server.h,1089
+struct Server52,1220
+	typedef std::list<DBusObject> Objects;59,1303
+	const Objects &getObjects(getObjects66,1493
+	bool getEnableBREDR(69,1629
+	bool getEnableSecureConnection(72,1775
+	bool getEnableConnectable(75,1942
+	bool getEnableDiscoverable(78,2100
+	bool getEnableAdvertising(81,2262
+	bool getEnableBondable(84,2416
+	GGKServerDataGetter getDataGetter(87,2515
+	GGKServerDataSetter getDataSetter(90,2621
+	const std::string &getAdvertisingName(getAdvertisingName99,3050
+	const std::string &getAdvertisingShortName(getAdvertisingShortName111,3656
+	const std::string &getServiceName(getServiceName119,3994
+	std::string getOwnedName(125,4250
+	Objects objects;186,7050
+	bool enableBREDR;189,7096
+	bool enableSecureConnection;192,7154
+	bool enableConnectable;195,7217
+	bool enableDiscoverable;198,7276
+	bool enableAdvertising;201,7338
+	bool enableBondable;204,7393
+	GGKServerDataGetter dataGetter;207,7524
+	GGKServerDataSetter dataSetter;210,7664
+	std::string advertisingName;219,8060
+	std::string advertisingShortName;231,8621
+	std::string serviceName;239,8909
+
+Logger.h,1482
+#define SSTR 33,887
+class Logger35,930
+	static void registerDebugReceiver(45,1172
+	static void registerInfoReceiver(49,1425
+	static void registerStatusReceiver(53,1679
+	static void registerWarnReceiver(57,1933
+	static void registerErrorReceiver(61,2186
+	static void registerFatalReceiver(65,2440
+	static void registerAlwaysReceiver(69,2695
+	static void registerTraceReceiver(73,2950
+	static void debug(81,3080
+	static void debug(84,3156
+	static void debug(87,3239
+	static void info(90,3323
+	static void info(93,3397
+	static void info(96,3478
+	static void status(99,3563
+	static void status(102,3641
+	static void status(105,3726
+	static void warn(108,3811
+	static void warn(111,3885
+	static void warn(114,3966
+	static void error(117,4050
+	static void error(120,4126
+	static void error(123,4209
+	static void fatal(126,4294
+	static void fatal(129,4370
+	static void fatal(132,4453
+	static void always(135,4539
+	static void always(138,4617
+	static void always(141,4702
+	static void trace(144,4788
+	static void trace(147,4864
+	static void trace(150,4947
+	static GGKLogReceiver logReceiverDebug;155,5118
+	static GGKLogReceiver logReceiverInfo;158,5273
+	static GGKLogReceiver logReceiverStatus;161,5429
+	static GGKLogReceiver logReceiverWarn;164,5585
+	static GGKLogReceiver logReceiverError;167,5740
+	static GGKLogReceiver logReceiverFatal;170,5896
+	static GGKLogReceiver logReceiverAlways;173,6053
+	static GGKLogReceiver logReceiverTrace;176,6210
+
+DBusInterface.cpp,709
+namespace ggk 51,2617
+DBusInterface::DBusInterface(57,2657
+DBusInterface::~DBusInterface(~DBusInterface62,2762
+const std::string &DBusInterface::getName(getName71,2902
+DBusInterface &DBusInterface::setName(setName77,3045
+DBusObject &DBusInterface::getOwner(getOwner88,3228
+DBusObjectPath DBusInterface::getPathNode(getPathNode94,3343
+DBusObjectPath DBusInterface::getPath(getPath100,3478
+DBusInterface &DBusInterface::addMethod(addMethod112,3735
+bool DBusInterface::callMethod(callMethod125,4373
+DBusInterface &DBusInterface::onEvent(onEvent148,5255
+void DBusInterface::tickEvents(tickEvents160,5693
+std::string DBusInterface::generateIntrospectionXML(generateIntrospectionXML169,5984
+
+standalone.cpp,583
+static const int kMaxAsyncInitTimeoutMS 107,5163
+static uint8_t serverDataBatteryLevel 114,5325
+static std::string serverDataTextString 117,5461
+enum LogLevel123,5539
+	Debug,125,5555
+	Verbose,126,5563
+	Normal,127,5573
+	ErrorsOnly128,5582
+LogLevel logLevel 132,5684
+void LogDebug(137,5848
+void LogInfo(138,5960
+void LogStatus(139,6073
+void LogWarn(140,6187
+void LogError(141,6271
+void LogFatal(142,6356
+void LogAlways(143,6441
+void LogTrace(144,6527
+void signalHandler(151,6751
+const void *dataGetter(dataGetter176,7452
+int dataSetter(205,8308
+int main(242,9161
+
+GattCharacteristic.h,637
+#define CHARACTERISTIC_UPDATED_VALUE_CALLBACK_LAMBDA 52,1634
+#define CHARACTERISTIC_EVENT_CALLBACK_LAMBDA 59,1794
+#define CHARACTERISTIC_METHOD_CALLBACK_LAMBDA 67,1965
+struct GattCharacteristic 81,2565
+	typedef void (*MethodCallback)MethodCallback86,2702
+	typedef void (*EventCallback)EventCallback87,2904
+	typedef bool (*UpdatedValueCallback)UpdatedValueCallback88,3039
+	GattCharacteristic(94,3344
+	virtual ~GattCharacteristic(95,3431
+	virtual const std::string getInterfaceType(98,3521
+	void sendChangeNotificationValue(208,8987
+	GattService &service;service216,9207
+	UpdatedValueCallback pOnUpdatedValueFunc;217,9230
+
+DBusObject.h,313
+struct DBusObject39,873
+	typedef std::list<std::shared_ptr<DBusInterface> > InterfaceList;42,956
+	std::shared_ptr<T> addInterface(85,2249
+	bool publish;122,4196
+	DBusObjectPath path;123,4211
+	InterfaceList interfaces;124,4233
+	std::list<DBusObject> children;125,4260
+	DBusObject *pParent;pParent126,4293
+
+GattService.h,264
+struct GattService 50,1663
+	GattService(56,1811
+	virtual ~GattService(58,1870
+	DBusObject &gattServiceEnd(gattServiceEnd61,1958
+	GattCharacteristic &gattCharacteristicBegin(gattCharacteristicBegin87,2906
+	virtual const std::string getInterfaceType(90,3102
+
+GattInterface.cpp,421
+namespace ggk 29,932
+GattInterface::GattInterface(34,979
+GattInterface::~GattInterface(~GattInterface39,1086
+const std::list<GattProperty> &GattInterface::getProperties(getProperties48,1203
+void GattInterface::methodReturnVariant(methodReturnVariant58,1690
+const GattProperty *GattInterface::findProperty(findProperty70,2075
+std::string GattInterface::generateIntrospectionXML(generateIntrospectionXML84,2388
+
+Mgmt.cpp,832
+namespace ggk 32,1063
+Mgmt::Mgmt(38,1281
+bool Mgmt::setName(setName51,1871
+	struct SRequest 57,2039
+		char name[name59,2083
+		char shortName[shortName60,2101
+bool Mgmt::setDiscoverable(setDiscoverable88,2934
+	struct SRequest 90,2995
+		uint8_t disc;92,3039
+		uint16_t timeout;93,3055
+bool Mgmt::setState(setState117,3664
+	struct SRequest 119,3749
+		uint8_t state;121,3793
+bool Mgmt::setPowered(setPowered142,4383
+bool Mgmt::setBredr(setBredr150,4624
+bool Mgmt::setSecureConnections(setSecureConnections158,4885
+bool Mgmt::setBondable(setBondable166,5143
+bool Mgmt::setConnectable(setConnectable174,5391
+bool Mgmt::setLE(setLE182,5636
+bool Mgmt::setAdvertising(setAdvertising191,5962
+std::string Mgmt::truncateName(truncateName202,6514
+std::string Mgmt::truncateShortName(truncateShortName214,6849
+
+Gobbledegook.cpp,1561
+namespace ggk48,1904
+	static const int kMaxAsyncInitCheckIntervalMS 51,1991
+	static std::thread serverThread;54,2067
+	volatile static GGKServerRunState serverRunState 57,2131
+	volatile static GGKServerHealth serverHealth 60,2230
+	static GPrintFunc printHandlerGLib;63,2369
+	static GPrintFunc printerrHandlerGLib;64,2406
+	static GLogFunc logHandlerGLib;65,2446
+	typedef std::tuple<std::string,std::string68,2501
+	typedef std::tuple<std::string, std::string> QueueEntry;68,2501
+	std::deque<QueueEntry> updateQueue;69,2559
+	std::mutex updateQueueMutex;70,2596
+	void setServerRunState(73,2682
+	void setServerHealth(80,2977
+void ggkLogRegisterDebug(99,3935
+void ggkLogRegisterInfo(100,4030
+void ggkLogRegisterStatus(101,4123
+void ggkLogRegisterWarn(102,4220
+void ggkLogRegisterError(103,4313
+void ggkLogRegisterFatal(104,4408
+void ggkLogRegisterTrace(105,4503
+void ggkLogRegisterAlways(106,4598
+int ggkNofifyUpdatedCharacteristic(123,6049
+int ggkNofifyUpdatedDescriptor(131,6336
+int ggkPushUpdateQueue(140,6696
+int ggkPopUpdateQueue(162,7615
+int ggkUpdateQueueIsEmpty(194,8307
+int ggkUpdateQueueSize(201,8485
+void ggkUpdateQueueClear(208,8635
+GGKServerRunState ggkGetServerRunState(227,9423
+const char *ggkGetServerRunStateString(ggkGetServerRunStateString233,9555
+int ggkIsServerRunning(247,9940
+GGKServerHealth ggkGetServerHealth(265,10793
+const char *ggkGetServerHealthString(ggkGetServerHealthString271,10917
+void ggkTriggerShutdown(301,12316
+int ggkShutdownAndWait(308,12494
+int ggkWait(336,13604
+int ggkStart(441,17717
+
+HciAdapter.cpp,717
+namespace ggk 55,2377
+std::thread HciAdapter::eventThread;58,2491
+const char * const HciAdapter::kCommandCodeNames[HciAdapter::kCommandCodeNames60,2529
+const char * const HciAdapter::kEventTypeNames[HciAdapter::kEventTypeNames136,7421
+const char * const HciAdapter::kStatusCodes[HciAdapter::kStatusCodes178,9927
+void runEventThread(204,11400
+void HciAdapter::runEventThread(runEventThread214,11793
+void HciAdapter::sync(sync382,16619
+bool HciAdapter::start(start415,17687
+void HciAdapter::stop(stop450,18337
+bool HciAdapter::sendCommand(sendCommand494,19559
+bool HciAdapter::waitForCommandResponse(waitForCommandResponse531,20592
+void HciAdapter::setCommandResponse(setCommandResponse555,21406
+
+Init.cpp,1760
+namespace ggk 53,1513
+static const int kPeriodicTimerFrequencySeconds 59,1550
+static const int kRetryDelaySeconds 60,1603
+static const int kIdleFrequencyMS 61,1644
+static time_t retryTimeStart 67,1703
+GDBusConnection *pBusConnection pBusConnection73,1770
+static guint ownedNameId 74,1813
+static guint periodicTimeoutId 75,1843
+static std::vector<guint> registeredObjectIds;76,1879
+static GDBusObjectManager *pBluezObjectManager pBluezObjectManager78,1978
+static GDBusObject *pBluezAdapterObject pBluezAdapterObject79,2036
+static GDBusObject *pBluezDeviceObject pBluezDeviceObject80,2087
+static GDBusProxy *pBluezGattManagerProxy pBluezGattManagerProxy81,2137
+static GDBusProxy *pBluezAdapterInterfaceProxy pBluezAdapterInterfaceProxy82,2190
+static GDBusProxy *pBluezDeviceInterfaceProxy pBluezDeviceInterfaceProxy83,2248
+static GDBusProxy *pBluezAdapterPropertiesInterfaceProxy pBluezAdapterPropertiesInterfaceProxy84,2305
+static bool bOwnedNameAcquired 85,2373
+static bool bAdapterConfigured 86,2413
+static bool bApplicationRegistered 87,2453
+static std::string bluezGattManagerInterfaceName 88,2497
+bool idleFunc(131,4851
+void uninit(190,6984
+void shutdown(283,9290
+gboolean onPeriodicTimer(317,10520
+void onMethodCall370,12107
+GVariant *onGetPropertyonGetProperty396,12918
+gboolean onSetProperty440,14459
+void setRetry(493,16898
+void setRetryFailure(500,17105
+void doRegisterApplication(517,18055
+void registerNodeHierarchy(569,20276
+void registerObjects(626,22024
+void configureAdapter(670,24002
+void findAdapterInterface(784,28776
+void getBluezObjectManager(876,32916
+void doOwnedNameAcquire(925,35213
+void doBusAcquire(996,37414
+void initializationStateProcessor(1038,39224
+void runServerThread(1141,41897
+
+Server.cpp,297
+namespace ggk 166,9717
+std::shared_ptr<Server> TheServer 183,10416
+Server::Server(Server219,12123
+std::shared_ptr<const DBusInterface> Server::findInterface(findInterface599,29019
+bool Server::callMethod(callMethod616,29597
+const GattProperty *Server::findProperty(findProperty632,30204
+
+GattService.cpp,210
+namespace ggk 35,998
+GattService::GattService(42,1352
+DBusObject &GattService::gattServiceEnd(gattServiceEnd48,1514
+GattCharacteristic &GattService::gattCharacteristicBegin(gattCharacteristicBegin77,2485
+
+GattProperty.h,213
+struct GattProperty33,795
+	GattProperty(39,1051
+	std::string name;94,3104
+	GVariant *pValue;pValue95,3123
+	GDBusInterfaceGetPropertyFunc getterFunc;96,3142
+	GDBusInterfaceSetPropertyFunc setterFunc;97,3185
+
+TickEvent.h,536
+struct TickEvent57,2571
+	typedef void (*Callback)Callback64,2681
+	TickEvent(70,3078
+	int getElapsedTicks(80,3368
+	void setElapsedTicks(83,3478
+	int getTickFrequency(86,3602
+	void setTickFrequency(89,3716
+	void *getUserData(getUserData92,3849
+	void setUserData(95,3953
+	Callback getCallback(98,4062
+	void setCallback(101,4154
+	void tick(115,4650
+	const DBusInterface *pOwner;pOwner136,5052
+	mutable int elapsedTicks;137,5082
+	int tickFrequency;138,5109
+	Callback callback;139,5129
+	void *pUserData;pUserData140,5149
+
+Globals.h,37
+#define kErrorNotImplemented 33,957
+
+HciSocket.h,135
+class HciSocket31,807
+	HciSocket(35,871
+	~HciSocket(40,991
+	bool connect(45,1130
+	bool isConnected(48,1219
+	int	fdSocket;81,2375
+
+GattUuid.h,414
+struct GattUuid65,3378
+	GattUuid(83,4256
+	GattUuid(101,5038
+	GattUuid(133,5705
+	GattUuid(148,6133
+	GattUuid(166,6708
+	int getBitCount(179,7288
+	std::string toString16(188,7597
+	std::string toString32(197,7930
+	std::string toString128(204,8134
+	std::string toString(212,8520
+	static std::string clean(220,8787
+	static std::string dashify(257,10064
+	std::string uuid;272,10526
+	int bitCount;273,10545
+
+DBusObjectPath.h,1068
+struct DBusObjectPath34,1132
+	inline DBusObjectPath(37,1202
+	inline DBusObjectPath(40,1265
+	inline explicit DBusObjectPath(45,1493
+	inline explicit DBusObjectPath(50,1720
+	inline const std::string &toString(toString53,1833
+	inline const char *c_str(c_str56,1933
+	inline DBusObjectPath &operator =(operator =59,2008
+	inline const DBusObjectPath &append(append67,2164
+	inline const DBusObjectPath &append(append82,2574
+	inline const DBusObjectPath &append(append88,2750
+	inline void operator +=(operator +=94,2934
+	inline void operator +=(operator +=100,3080
+	inline void operator +=(operator +=106,3220
+	inline DBusObjectPath operator +(operator +112,3362
+	inline DBusObjectPath operator +(operator +120,3577
+	inline DBusObjectPath operator +(operator +128,3785
+	inline bool operator ==(operator ==136,4014
+	std::string path;143,4116
+inline DBusObjectPath operator +(operator +147,4243
+inline DBusObjectPath operator +(operator +150,4466
+inline std::ostream& operator<<(153,4668
+inline std::ostream& operator +(operator +160,4872
+
+Utils.cpp,2152
+namespace ggk 36,1227
+void Utils::trimBeginInPlace(trimBeginInPlace43,1567
+void Utils::trimEndInPlace(trimEndInPlace53,1775
+void Utils::trimInPlace(trimInPlace63,1994
+std::string Utils::trimBegin(trimBegin70,2122
+std::string Utils::trimEnd(trimEnd78,2274
+std::string Utils::trim(trim86,2428
+std::string Utils::hex(hex98,2894
+std::string Utils::hex(hex106,3058
+std::string Utils::hex(hex114,3225
+std::string Utils::hex(hex122,3396
+std::string Utils::bluetoothAddressString(bluetoothAddressString198,5092
+GVariant *Utils::gvariantFromString(gvariantFromString211,5696
+GVariant *Utils::gvariantFromString(gvariantFromString217,5862
+GVariant *Utils::gvariantFromStringArray(gvariantFromStringArray227,6220
+GVariant *Utils::gvariantFromStringArray(gvariantFromStringArray250,6762
+GVariant *Utils::gvariantFromStringArray(gvariantFromStringArray272,7206
+GVariant *Utils::gvariantFromStringArray(gvariantFromStringArray292,7667
+GVariant *Utils::gvariantFromObject(gvariantFromObject312,8137
+GVariant *Utils::gvariantFromBoolean(gvariantFromBoolean318,8300
+GVariant *Utils::gvariantFromInt(gvariantFromInt324,8436
+GVariant *Utils::gvariantFromInt(gvariantFromInt330,8576
+GVariant *Utils::gvariantFromByteArray(gvariantFromByteArray336,8740
+GVariant *Utils::gvariantFromByteArray(gvariantFromByteArray348,9051
+GVariant *Utils::gvariantFromByteArray(gvariantFromByteArray354,9309
+GVariant *Utils::gvariantFromByteArray(gvariantFromByteArray363,9667
+GVariant *Utils::gvariantFromByteArray(gvariantFromByteArray372,10024
+GVariant *Utils::gvariantFromByteArray(gvariantFromByteArray378,10231
+GVariant *Utils::gvariantFromByteArray(gvariantFromByteArray384,10440
+GVariant *Utils::gvariantFromByteArray(gvariantFromByteArray390,10649
+GVariant *Utils::gvariantFromByteArray(gvariantFromByteArray396,10859
+GVariant *Utils::gvariantFromByteArray(gvariantFromByteArray402,11068
+GVariant *Utils::gvariantFromByteArray(gvariantFromByteArray408,11278
+GVariant *Utils::gvariantFromByteArray(gvariantFromByteArray414,11487
+std::string Utils::stringFromGVariantByteArray(stringFromGVariantByteArray420,11670
+
+Init.h,0
