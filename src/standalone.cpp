@@ -5,13 +5,14 @@
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file in the root of the source tree.
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 // >>
 // >>>  INSIDE THIS FILE
 // >>
 //
-// This is an example single-file stand-alone application that runs a Gobbledegook server.
+// This is an example single-file stand-alone application that runs a
+// Gobbledegook server.
 //
 // >>
 // >>>  DISCUSSION
@@ -90,7 +91,7 @@
 // If it is important to you or your build process that Gobbledegook exist as a library, you are welcome to do so. Just configure
 // your build process to build the Gobbledegook files (minus this file) as a library and link against that instead. All that is
 // required by applications linking to a Gobbledegook library is to include `include/Gobbledegook.h`.
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #include <signal.h>
 #include <iostream>
@@ -289,7 +290,7 @@ int main(int argc, char **ppArgv)
 	//     This first parameter (the service name) must match tha name configured in the D-Bus permissions. See the Readme.md file
 	//     for more information.
 	//
-	if (!ggkStart("gobbledegook", "Gobbledegook", "Gobbledegook", dataGetter, dataSetter, kMaxAsyncInitTimeoutMS))
+	if (!ggkStart("decentscale", "Decent Scale", "DecentScale", dataGetter, dataSetter, kMaxAsyncInitTimeoutMS))
 	{
 		return -1;
 	}
@@ -300,9 +301,9 @@ int main(int argc, char **ppArgv)
 	while (ggkGetServerRunState() < EStopping)
 	{
 		std::this_thread::sleep_for(std::chrono::seconds(15));
-
-		serverDataBatteryLevel = std::max(serverDataBatteryLevel - 1, 0);
-		ggkNofifyUpdatedCharacteristic("/com/gobbledegook/battery/level");
+		// Se elimina ejemplo de serverDataBatteryLevel
+		// serverDataBatteryLevel = std::max(serverDataBatteryLevel - 1, 0);
+		// ggkNofifyUpdatedCharacteristic("/com/gobbledegook/battery/level");
 	}
 
 	// Wait for the server to come to a complete stop (CTRL-C from the command line)
