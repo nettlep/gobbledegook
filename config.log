@@ -63,8 +63,8 @@ configure:3032: checking whether make supports nested variables
 configure:3050: result: yes
 configure:3199: checking whether make supports the include directive
 configure:3214: make -f confmf.GNU && cat confinc.out
-make[3]: Entering directory '/home/awiwi/gobbledegook'
-make[3]: Leaving directory '/home/awiwi/gobbledegook'
+make[4]: Entering directory '/home/awiwi/gobbledegook'
+make[4]: Leaving directory '/home/awiwi/gobbledegook'
 this is the am__doit target
 configure:3217: $? = 0
 configure:3236: result: yes (GNU style)
@@ -475,6 +475,6 @@ config.status:855: creating config.h
 config.status:1036: config.h is unchanged
 config.status:1084: executing depfiles commands
 config.status:1161: cd src       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
-make[3]: Entering directory '/home/awiwi/gobbledegook/src'
-make[3]: Leaving directory '/home/awiwi/gobbledegook/src'
+make[4]: Entering directory '/home/awiwi/gobbledegook/src'
+make[4]: Leaving directory '/home/awiwi/gobbledegook/src'
 config.status:1166: $? = 0
