@@ -1,0 +1,10 @@
+{
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/home/awiwi/gobbledegook/src",
+            "binaryPath": "/home/awiwi/gobbledegook/src/standalone",
+            "binaryArgs": []
+        }
+    ],
+    "C_Cpp.errorSquiggles": "Enabled"
+}

@@ -115,7 +115,8 @@ static const int kMaxAsyncInitTimeoutMS = 30 * 1000;
 static uint8_t serverDataBatteryLevel = 78;
 
 // The text string ("text/string") used by our custom text string service (see Server.cpp)
-static std::string serverDataTextString = "Hello, world!";
+static std::string serverDataTextString = "\x03\x0F\x04\x03\x02\x01\x0F";
+// static std::string serverDataTextString = "Hello, world!";
 
 //
 // Logging
@@ -240,7 +241,7 @@ int dataSetter(const char *pName, const void *pData)
 // Entry point
 //
 
-int main(int argc, char **ppArgv)
+int main(int argc, char **ppArgv) // Arrmts count #, Actual String Arguments
 {
 	// A basic command-line parser
 	for (int i = 1; i < argc; ++i)
