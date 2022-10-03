@@ -48,164 +48,29 @@
 #include <chrono>
 #include <future>
 
+#include <thread>
+#include <mutex>
+
 #include "SkaleMngr.h"
 #include "Utils.h"
 #include "Logger.h"
 
 namespace ggk {
 
+// Declared in =.h For sake of Thread-safety <<<---
+// std::mutex SkaleMutex;
+
 // Our event thread listens for events coming from the adapter and deals with them appropriately
-std::thread SkaleAdapter::eventThread;
+// std::thread SkaleAdapter::eventThread;
 
 /*
-const char * const SkaleAdapter::kCommandCodeNames[kMaxCommandCode + 1] =
-{
-	"Invalid Command",                                   // 0x0000
-	"Read Version Information Command",                  // 0x0001
-	"Read Supported Commands Command",                   // 0x0002
-	"Read Controller Index List Command",                // 0x0003
-	"Read Controller Information Command",               // 0x0004
-	"Set Powered Command",                               // 0x0005
-	"Set Discoverable Command",                          // 0x0006
-	"Set Connectable Command",                           // 0x0007
-	"Set Fast Connectable Command",                      // 0x0008
-	"Set Bondable Command",                              // 0x0009
-	"Set Link Security Command",                         // 0x000A
-	"Set Secure Simple Pairing Command",                 // 0x000B
-	"Set High Speed Command",                            // 0x000C
-	"Set Low Energy Command",                            // 0x000D
-	"Set Device Class",                                  // 0x000E
-	"Set Local Name Command",                            // 0x000F
-	"Add UUID Command",                                  // 0x0010
-	"Remove UUID Command",                               // 0x0011
-	"Load Link Keys Command",                            // 0x0012
-	"Load Long Term Keys Command",                       // 0x0013
-	"Disconnect Command",                                // 0x0014
-	"Get Connections Command",                           // 0x0015
-	"PIN Code Reply Command",                            // 0x0016
-	"PIN Code Negative Reply Command",                   // 0x0017
-	"Set IO Capability Command",                         // 0x0018
-	"Pair Device Command",                               // 0x0019
-	"Cancel Pair Device Command",                        // 0x001A
-	"Unpair Device Command",                             // 0x001B
-	"User Confirmation Reply Command",                   // 0x001C
-	"User Confirmation Negative Reply Command",          // 0x001D
-	"User Passkey Reply Command",                        // 0x001E
-	"User Passkey Negative Reply Command",               // 0x001F
-	"Read Local Out Of Band Data Command",               // 0x0020
-	"Add Remote Out Of Band Data Command",               // 0x0021
-	"Remove Remote Out Of Band Data Command",            // 0x0022
-	"Start Discovery Command",                           // 0x0023
-	"Stop Discovery Command",                            // 0x0024
-	"Confirm Name Command",                              // 0x0025
-	"Block Device Command",                              // 0x0026
-	"Unblock Device Command",                            // 0x0027
-	"Set Device ID Command",                             // 0x0028
-	"Set Advertising Command",                           // 0x0029
-	"Set BR/EDR Command",                                // 0x002A
-	"Set Static Address Command",                        // 0x002B
-	"Set Scan Parameters Command",                       // 0x002C
-	"Set Secure Connections Command",                    // 0x002D
-	"Set Debug Keys Command",                            // 0x002E
-	"Set Privacy Command",                               // 0x002F
-	"Load Identity Resolving Keys Command",              // 0x0030
-	"Get Connection Information Command",                // 0x0031
-	"Get Clock Information Command",                     // 0x0032
-	"Add Device Command",                                // 0x0033
-	"Remove Device Command",                             // 0x0034
-	"Load Connection Parameters Command",                // 0x0035
-	"Read Unconfigured Controller Index List Command",   // 0x0036
-	"Read Controller Configuration Information Command", // 0x0037
-	"Set External Configuration Command",                // 0x0038
-	"Set Public Address Command",                        // 0x0039
-	"Start Service Discovery Command",                   // 0x003a
-	"Read Local Out Of Band Extended Data Command",      // 0x003b
-	"Read Extended Controller Index List Command",       // 0x003c
-	"Read Advertising Features Command",                 // 0x003d
-	"Add Advertising Command",                           // 0x003e
-	"Remove Advertising Command",                        // 0x003f
-	"Get Advertising Size Information Command",          // 0x0040
-	"Start Limited Discovery Command",                   // 0x0041
-	"Read Extended Controller Information Command",      // 0x0042
-	// NOTE: The documentation at https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc/mgmt-api.txt) states that the command
-	// code for "Set Appearance Command" is 0x0042. It also says this about the previous command in the list ("Read Extended
-	// Controller Information Command".) This is likely an error, so I'm following the order of the commands as they appear in the
-	// documentation. This makes "Set Appearance Code" have a command code of 0x0043.
-	"Set Appearance Command"                             // 0x0043
-};
 
-const char * const SkaleAdapter::kEventTypeNames[kMaxEventType + 1] =
-{
-	"Invalid Event",                                     // 0x0000
-	"Command Complete Event",                            // 0x0001
-	"Command Status Event",                              // 0x0002
-	"Controller Error Event",                            // 0x0003
-	"Index Added Event",                                 // 0x0004
-	"Index Removed Event",                               // 0x0005
-	"New Settings Event",                                // 0x0006
-	"Class Of Device Changed Event",                     // 0x0007
-	"Local Name Changed Event",                          // 0x0008
-	"New Link Key Event",                                // 0x0009
-	"New Long Term Key Event",                           // 0x000A
-	"Device Connected Event",                            // 0x000B
-	"Device Disconnected Event",                         // 0x000C
-	"Connect Failed Event",                              // 0x000D
-	"PIN Code Request Event",                            // 0x000E
-	"User Confirmation Request Event",                   // 0x000F
-	"User Passkey Request Event",                        // 0x0010
-	"Authentication Failed Event",                       // 0x0011
-	"Device Found Event",                                // 0x0012
-	"Discovering Event",                                 // 0x0013
-	"Device Blocked Event",                              // 0x0014
-	"Device Unblocked Event",                            // 0x0015
-	"Device Unpaired Event",                             // 0x0016
-	"Passkey Notify Event",                              // 0x0017
-	"New Identity Resolving Key Event",                  // 0x0018
-	"New Signature Resolving Key Event",                 // 0x0019
-	"Device Added Event",                                // 0x001a
-	"Device Removed Event",                              // 0x001b
-	"New Connection Parameter Event",                    // 0x001c
-	"Unconfigured Index Added Event",                    // 0x001d
-	"Unconfigured Index Removed Event",                  // 0x001e
-	"New Configuration Options Event",                   // 0x001f
-	"Extended Index Added Event",                        // 0x0020
-	"Extended Index Removed Event",                      // 0x0021
-	"Local Out Of Band Extended Data Updated Event",     // 0x0022
-	"Advertising Added Event",                           // 0x0023
-	"Advertising Removed Event",                         // 0x0024
-	"Extended Controller Information Changed Event"      // 0x0025
-};
-
-const char * const SkaleAdapter::kStatusCodes[kMaxStatusCode + 1] =
-{
-	"Success",                                           // 0x00
-	"Unknown Command",                                   // 0x01
-	"Not Connected",                                     // 0x02
-	"Failed",                                            // 0x03
-	"Connect Failed",                                    // 0x04
-	"Authentication Failed",                             // 0x05
-	"Not Paired",                                        // 0x06
-	"No Resources",                                      // 0x07
-	"Timeout",                                           // 0x08
-	"Already Connected",                                 // 0x09
-	"Busy",                                              // 0x0A
-	"Rejected",                                          // 0x0B
-	"Not Supported",                                     // 0x0C
-	"Invalid Parameters",                                // 0x0D
-	"Disconnected",                                      // 0x0E
-	"Not Powered",                                       // 0x0F
-	"Cancelled",                                         // 0x10
-	"Invalid Index",                                     // 0x11
-	"RFKilled",                                          // 0x12
-	"Already Paired",                                    // 0x13
-	"Permission Denied",                                 // 0x14
-};
-*/
 // Our thread interface, which simply launches our the thread processor on our SkaleAdapter instance
 void runEventThread()
 {
 	SkaleAdapter::getInstance().runEventThread();
 }
+*/
 
 // Event processor, responsible for receiving events from the Skale socket
 //
@@ -219,16 +84,29 @@ void SkaleAdapter::runUpdateThread()
 	while (ggkGetServerRunState() <= ERunning /*&& SkaleSocket.isConnected() */)
 	{
 		// pruebita
-		auto ahora = std::chrono::steady_clock::now(); 
-		using std::chrono::operator""ms;
-		auto proxCiclo = ahora + kAvrgRescanTimeMS;
+		// Procesa la informacion ANTERIOR
 
-		std::lock_guard<std::mutex> lk(SkaleInfoMutex);
-		// procesar informacion
+		if (TRUE)
+		{
+			// Ojo: La creacion del objeto lock "lk", Bloquea SkaleMutex
+			std::lock_guard<std::mutex> lk(SkaleMutex); 
+			Logger::trace("runUpdateThread locks SkaleMutex")
+			// Actualiza informacion
+			// Ojo: El termino del scope y destruccion del objeto, libera SkaleMutex
+			Logger::trace("runUpdateThread unlocks SkaleMutex")
 
-		std::this_thread::sleep_until(proxCiclo);
+		}
 
-		
+		// ahora Duerme en espera nuevo ciclo
+		std::this_thread::sleep_for(kRescanTimeMS);
+		// Lee nuevo sensor
+	}
+
+	Logger::trace("Leaving the SkaleAdapter runUpdateThread thread");
+}
+
+
+		/*
 		// Read the next event, waiting until one arrives
 		std::vector<uint8_t> responsePacket = std::vector<uint8_t>();
 		if (!SkaleSocket.read(responsePacket))
@@ -382,10 +260,11 @@ void SkaleAdapter::runUpdateThread()
 	}
 
 	// Make sure we're disconnected before we leave
-	SkaleSocket.disconnect();
+	//SkaleSocket.disconnect();
 
-	Logger::trace("Leaving the SkaleAdapter event thread");
+	// Logger::trace("Leaving the SkaleAdapter event thread");
 }
+		*/
 
 // Reads current values from the controller
 //
@@ -568,7 +447,6 @@ void SkaleAdapter::setCommandResponse(uint16_t commandCode)
 {
 	// pruebita
 	auto ahora = std::chrono::steady_clock::now(); 
-    using std::chrono::operator""ms;
 	auto proximo = ahora + 2000ms;
 
 	std::lock_guard<std::mutex> lk(SkaleInfoMutex);

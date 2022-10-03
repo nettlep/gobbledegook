@@ -112,7 +112,7 @@ static const int kMaxAsyncInitTimeoutMS = 30 * 1000;
 //
 
 // The battery level ("battery/level") reported by the server (see Server.cpp)
-static uint8_t serverDataBatteryLevel = 78;
+// static uint8_t serverDataBatteryLevel = 78;
 
 // The text string ("text/string") used by our custom text string service (see Server.cpp)
 static std::string serverDataTextString = "\x03\x0F\x04\x03\x02\x01\x0F";

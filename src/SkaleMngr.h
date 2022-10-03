@@ -1,4 +1,3 @@
-
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file in the root of the source tree.
 
@@ -20,15 +19,19 @@
 #pragma once
 
 #include <stdint.h>
-#include <random>
 #include <vector>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
 
+#include <random>
+
 #include "Logger.h"
 
 namespace ggk {
+
+// Globa var used or sake of Thread-safety <<<---
+std::mutex SkaleMutex;
 
 class SkaleAdapter
 {
@@ -39,9 +42,7 @@ public:
 	//
 
 	// Average time beetween scale values update cycles
-// 	using std::chrono::operator""ms;
-    using std::chrono_literals;
-	const std::chrono::milliseconds kAvrgRescanTimeMS = 33ms;
+	const auto kRescanTimeMS = std::chrono::milliseconds(33)
 
 /*
 	// How long to wait for a response event for commands sent to the adapter
@@ -52,17 +53,11 @@ public:
 
 	// Command code names
 	static const int kMinCommandCode = 0x0001;
-	static const int kMaxCommandCode = 0x0043;
 	static const char * const kCommandCodeNames[kMaxCommandCode + 1];
 
 	// Event type names
 	static const int kMinEventType = 0x0001;
-	static const int kMaxEventType = 0x0025;
 	static const char * const kEventTypeNames[kMaxEventType + 1];
-
-	static const int kMinStatusCode = 0x00;
-	static const int kMaxStatusCode = 0x14;
-	static const char * const kStatusCodes[kMaxStatusCode + 1];
 */
 
 	//
@@ -104,18 +99,27 @@ public:
 		ESkaleStaticAddress = (1<<15)
 	};
 */
+	// ???
+	static int16_t PesoRaw;      // Grams * 10
+	static int16_t PesoAntes;  
+	static int16_t PesoAhora;  
+	static int16_t DiferenciaPeso;  
+	static int16_t 
+	static int16_t dataSize;
+	// 03= Decent Type CE=weightstable 0000=weight 0000=Change =XORvalidation
+
+	static std::string  CurrntWeightReport = "\x03\xCE\x00\x00\x00\x00\xCD"; 
+
+	void LeePesoHW()
+	{
+		//PesoRaw =  rand() % 100 - 50; 
+		PesoRaw =  0x0000;
+	}
+
+	void SkaleAdapter::runUpdateThread()
+
 	struct SkaleHW
 	{
-		int16_t PesoRaw;      // Grams * 10
-		int16_t controllerId;
-		int16_t dataSize;
-
-		void LeePesoHW()
-		{
-			PesoRaw =  rand() % 100 - 50; 
-			controllerId = Utils::endianToSkale(controllerId);
-			dataSize = Utils::endianToSkale(dataSize);
-		}
 
 
 		std::string debugText()
@@ -483,7 +487,7 @@ public:
 	void runEventThread();
 
 private:
-	// Private constructor for our Singleton
+	// Private constructor for our Singleton <<--- Ojo
 	SkaleAdapter() : SkaleInfoLock(SkaleInfoMutex), activeConnections(0) {}
 
 	// Uses a std::condition_variable to wait for a response event for the given `commandCode` or `timeoutMS` milliseconds.
