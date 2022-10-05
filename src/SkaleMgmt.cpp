@@ -51,168 +51,212 @@
 #include <thread>
 #include <mutex>
 
-#include "SkaleMngr.h"
+#include "SkaleMgmt.h"
 #include "Utils.h"
 #include "Logger.h"
 
+#include <sstream>
+
 namespace ggk {
 
-// Declared in =.h For sake of Thread-safety <<<---
-// std::mutex SkaleMutex;
+	// Declared in =.h For sake of Thread-safety <<<---
+	// std::mutex SkaleMutex;
 
-// Our event thread listens for events coming from the adapter and deals with them appropriately
-// std::thread SkaleAdapter::eventThread;
+	// Our event thread listens for events coming from the adapter and deals with them appropriately
+	// std::thread SkaleAdapter::eventThread;
 
-/*
+	/*
 
-// Our thread interface, which simply launches our the thread processor on our SkaleAdapter instance
-void runEventThread()
-{
-	SkaleAdapter::getInstance().runEventThread();
-}
-*/
+	// Our thread interface, which simply launches our the thread processor on our SkaleAdapter instance
+	void runEventThread()
+	{
+		SkaleAdapter::getInstance().runEventThread();
+	}
+	*/
 
-// Event processor, responsible for receiving events from the Skale socket
-//
-// This mehtod should not be called directly. Rather, it runs continuously on a thread until the server shuts down
-//
-// It isn't necessary to disconnect manually; the Skale socket will get disocnnected automatically at before this method returns
-static int16_t SkaleAdapter::LeePesoHW()
-{
-	//PesoRaw =  rand() % 100 - 50; 
-	int16_t TmpLeePesoRaw =  0x0000;
-	return  TmpLeePesoRaw;
-}
+	// Event processor, responsible for receiving events from the Skale socket
+	//
+	// This mehtod should not be called directly. Rather, it runs continuously on a thread until the server shuts down
+	//
+	// It isn't necessary to disconnect manually; the Skale socket will get disocnnected automatically at before this method returns
+	static int16_t SkaleAdapter::LeePesoHW()
+	{
+		//PesoRaw =  rand() % 100 - 50; 
+		int16_t TmpLeePesoRaw =  0x0000;
+		return  TmpLeePesoRaw;
+	}
 
-static std::string SkaleAdapter::SkaleResponce()
-{
+	static std::string SkaleAdapter::SkaleResponce()
+	{
 		// Ojo: La creacion del objeto lock "lk", Bloquea SkaleMutex
 		std::lock_guard<std::mutex> lk(SkaleMutex); 
 		Logger::trace("SkaleResponce locks SkaleMutex to read")
 		// Actualiza informacion
 		// RespAskedAllredySent = true;
 		return WeightReport; 
-}
-
-static bool SkaleAdapter::SkaleProcKmd(std::string SkaleKmnd)
-{
-	// Verify Parity
-	char xor = SkaleKmnd[0] ;          
-	for(int i=1; i<=5; i++)            // Calcula xor
-		{ xor = xor ^ SkaleKmnd[i]; }
-	if ( SkaleKmnd[6] <> xor )         // command corrupted
-		{ return false; }              // command corrupted --> Abort
-	// Otherwise... process
-	// Ojo: La creacion del objeto lock "lk", Bloquea SkaleMutex
-	std::lock_guard<std::mutex> lk(SkaleMutex); 
-	Logger::trace("SkaleResponce locks SkaleMutex to read")
-	// Actualiza informacion
-	switch(SkaleKmnd[1]) {
-		case 0x0A :  //LED
-			statement(s);
-		break;  
-		case 0x0B :  //Timer 
-			// Null Action for now
-		break;
-		case 0x0F :  //Tare
-			statement(s);
-		break;  
-		default : // command corrupted --> Abort 
-			return false;
 	}
-	return true;
-}
 
-void SkaleAdapter::runUpdWeightThread()
-{
-	Logger::trace("Entering the SkaleAdapter runUpdateThread");
-	// first cicle will run with default values
-
-	// first time no blocking to update info
-	static bool    TmpRespAskedAllredySent = true;
-	static int16_t TmpPesoRaw        = 0x0000;   
-	static int16_t TmpPesoAntes      = 0x0000;
-	static int16_t TmpPesoAhora      = 0x0000;
-	static int16_t TmpDiferenciaPeso = 0x0000;
-	static bool    TmpWeightStable   = true;
-	static bool    TmpLedOn          = false;
-	static bool    TmpGramsOn        = true;
-	static bool    TmpTimerOn        = false;
-	// 03=Decent Type CE=weightstable 0000=weight 0000=Change =XorValidation
-	static std::string  TmpWeightReport = "\x03\xCE\x00\x00\x00\x00\xCD"; 
-	//                                     0-1o 1-2o 2-Peso 4-Dif   6-xor    
-
-	while ( true )	// Continuo
+	static bool SkaleAdapter::SkaleProcKmd(std::string SkaleKmnd)
 	{
-		// pruebita OJO <---- No todas las actualizaciones se envian al Cliente
-		// Pace the cicles to avoid waist CPU
-		std::this_thread::sleep_for(kRescanTimeMS);
-		// Info Anterior contenida en Tmp-Variables
-		
-		// Procesa la informacion nueva Info Solo si ya se envio una
-		// respuesta solicitada por el clente "RespAskedAllredySent"
-		// if (TmpRespAskedAllredySent)
-
-		// Lee Nueva Info desde el HW
-		TmpPesoRaw = SkaleAdapter::LeePesoHW();
-		//  Ojo: Antes si podria haber cambiado no asumir lo contrario
-		if ( TmpPesoRaw == TmpPesoAntes )
-		{
-			// continue;
-			TmpWeightStable = true;                 // pudo haber sido inestable
-			TmpWeightReport[1] = ESkaleStable;      // 2o byte = Parm Estabilidad
-		//	TmpWeightReport[2] = TmpPesoRaw;           3er y 4o bytes Parm Peso reportado no cambio
-			TmpDiferenciaPeso  = 0x00;              // la diferencia pudo haber sido <> x00
-			TmpWeightReport[4] = TmpDiferenciaPeso; // 5o y 6o. bytes Parm Diferencia Peso 
-		//	TmpPesoAntes = TmpPesoRaw;                 No cambio nuevo Anterior
-			char xor = 0x03 ;        // TmpWeightReport[0] allways 0x03
-			for(int i=1; i<=5; i++)  // Calcula xor
-			   { xor = xor ^ TmpWeightReport[i]; }
-			TmpWeightReport[6] = xor;
-		}
-		else
-		{
-			// 1er. byte nunca cambia x03
-			TmpWeightStable = false; 
-			TmpWeightReport[1] = ESkaleChning;      // 2o byte = Parm Estabilidad
-			TmpWeightReport[2] = TmpPesoRaw;        // 3er y 4o bytes Parm Peso Actual
-			TmpDiferenciaPeso  = TmpPesoRaw - TmpPesoAntes;
-			TmpWeightReport[4] = TmpDiferenciaPeso; // 5o y 6o. bytes Parm Diferencia Peso 
-			TmpPesoAntes = TmpPesoRaw;              // Cambia el peso a comparar en siguiente ciclo
-
-			char xor = 0x03 ;        // TmpWeightReport[0] allways 0x03
-			for(int i=1; i<=5; i++)  // Calcula xor
-			   { xor = xor ^ TmpWeightReport[i]; }
-			TmpWeightReport[6] = xor;
-		}
-		// Actualiza peso a reportar
+		// Verify Parity
+		char xor = SkaleKmnd[0] ;          
+		for(int i=1; i<=5; i++)            // Calcula xor
+			{ xor = xor ^ SkaleKmnd[i]; }
+		if ( SkaleKmnd[6] <> xor )         // command corrupted
+			{ return false; }              // command corrupted --> Abort
+		// Otherwise... process
 		// Ojo: La creacion del objeto lock "lk", Bloquea SkaleMutex
 		std::lock_guard<std::mutex> lk(SkaleMutex); 
-		Logger::trace("runUpdateThread locks SkaleMutex to write")
+		Logger::trace("SkaleResponce locks SkaleMutex to read")
 		// Actualiza informacion
-		RespAskedAllredySent = TmpRespAskedAllredySent;
-		PesoRaw	       = TmpPesoRaw;      // Grams * 10
-		PesoAntes	   = TmpPesoAntes;
-		PesoAhora	   = TmpPesoAhora;
-		DiferenciaPeso = TmpDiferenciaPeso;
-		WeightStable   = TmpWeightStable;
-		LedOn	       = TmpLedOn;
-		GramsOn	       = TmpGramsOn ;
-		TimerOn	       = TmpTimerOn  ;
-		WeightReport   = TmpWeightReport; 
-		// Ojo: El termino del scope y destruccion del objeto, libera SkaleMutex
-		// Ojo: El termino del scope y destruccion del objeto, libera SkaleMutex
-		Logger::trace("runUpdateThread unlocks SkaleMutex to write");
+		switch(SkaleKmnd[1]) {
+			case 0x0A :  //LED
+				statement(s);
+			break;  
+			case 0x0B :  //Timer 
+				// Null Action for now
+			break;
+			case 0x0F :  //Tare
+				statement(s);
+			break;  
+			default : // command corrupted --> Abort 
+				return false;
+		}
+		return true;
 	}
 
-	Logger::trace("Leaving the SkaleAdapter runUpdateThread thread");
-}
+	void SkaleAdapter::Tare()
+	{
+		Logger::trace("Entering the SkaleAdapter Tare");
 
-		/*
+			// Guardar informacion
+			// Ojo: La creacion del objeto lock "lk", Bloquea SkaleMutex
+			std::lock_guard<std::mutex> lk(SkaleMutex); 
+			Logger::trace("Skale Tare locks SkaleMutex to Udate")
+			// Actualiza informacion de Tara
+
+		// 	PesoRaw	       = ????                 Peso actual se asume actualizado
+			PesoConTara	   = 0x00;             // Se reportara Cero
+			OffsetPaTara   = PesoRaw;          // PesoCrudo actual es la nueva base (offset)
+
+			WeightStable   = true;             // Se asume estabilidad x un momento
+			PesoRawAntes   = PesoRaw;
+			DiferenciaPeso = 0x00;
+
+			WeightReport[1] = ESkaleStable;    // 2o byte = Parm Estabilidad
+			
+			std::ostringstream TmpStringLen2;
+
+		//	WeightReport[2] = PesoConTara;     // 3o y 4o. bytes Diferencia Peso 
+			TmpStringLen2 = "";
+			TmpStringLen2 << std::setfill('0') << std::setw(4) << std::hex << PesoConTara;
+			WeightReport.replace(2, 2, TmpStringLen2); // str.replace(pos,len,str2); 
+
+		//	WeightReport[4] = DiferenciaPeso;  // 5o y 6o. bytes Diferencia Peso 
+			TmpStringLen2 = "";
+			TmpStringLen2 << std::setfill('0') << std::setw(4) << std::hex << DiferenciaPeso;
+			WeightReport.replace(4, 2, TmpStringLen2); // str.replace(pos,len,str2);  		           
+
+			// Calcular y actualizar nueva paridad
+			char xor = WeightReport[0];        
+			for(int i=1; i<=5; i++)  // Calcula xor
+				{ xor = xor ^ WeightReport[i]; }
+			WeightReport[6] = xor;
+			// Ojo: El termino del scope y destruccion del objeto, libera SkaleMutex
+			Logger::trace("Leaving the SkaleAdapter Tare & Unlock SkaleMutex");
+	}
+
+	void SkaleAdapter::runUpdWeightThread()
+	{
+		Logger::trace("Entering the SkaleAdapter runUpdateThread");
+		// first cicle will run with default values
+
+		int16_t            TmpPesoRaw;   
+		std::ostringstream TmpStringLen2 = '';
+
+		// 03=Decent Type CE=weightstable 0000=weight 0000=Change =XorValidation
+		//	static std::string  WeightReport = "\x03\xCE\x00\x00\x00\x00\xCD"; 
+		//                                      0-1o 1-2o 2-Peso 4-Dif   6-xor    
+
+		while ( true )	// Continuo pruebita OJO <---- No todas las actualizaciones se envian al Cliente
+		{
+			// Pace the cicles to avoid waist CPU
+			std::this_thread::sleep_for(kRescanTimeMS);
+			
+			// Info Anterior contenida en Tmp-Variables
+
+			// Procesa la informacion nueva Info Solo si ya se envio una
+			// respuesta solicitada por el clente "RespAskedAllredySent"
+			// if (TmpRespAskedAllredySent)
+				// continue;
+
+			// Para no consumir tiempo se lee en Var temporal
+			TmpPesoRaw = SkaleAdapter::LeePesoHW(); 
+
+			if ( true ) {   // Solo para limitar scope
+
+				Logger::trace("runUpdateThread locks SkaleMutex to Update")
+				//Ahora si se actualiza Informacion
+				std::lock_guard<std::mutex> lk(SkaleMutex); 
+
+				PesoRaw = TmpPesoRaw;
+				//  Ojo: No asumir que si ahora es igual siempre a sido igual
+				if ( PesoRaw == PesoRawAntes )
+				{
+					WeightStable = true;                          // pudo haber sido inestable
+					WeightReport[1] = ESkaleStable;               // 2o byte = Parm Estabilidad
+
+				//	PesoConTara     = PesoRaw - OffsetPaTara;        No cambio 
+					DiferenciaPeso  = 0x00;                       // si pudo haber cambiado
+				//	PesoRawAntes    = PesoRaw;                       No cambio 
+
+				//	WeightReport[2] = PesoConTara;                   Peso reportado no cambio 3o y 4o. bytes 
+				//	TmpStringLen2 = "";
+				//	TmpStringLen2 << std::setfill('0') << std::setw(4) << std::hex << PesoConTara;
+				//	WeightReport.replace(2, 2, TmpStringLen2);    // str.replace(pos,len,str2); 
+
+				//	WeightReport[4] = DiferenciaPeso;             // 5o y 6o. bytes Diferencia Peso 
+					TmpStringLen2 = "";
+					TmpStringLen2 << std::setfill('0') << std::setw(4) << std::hex << DiferenciaPeso;
+					WeightReport.replace(4, 2, TmpStringLen2);    // str.replace(pos,len,str2);  	
+				}
+				else
+				{
+					WeightStable = false; 
+					WeightReport[1] = ESkaleChning;               // 2o byte = Parm Estabilidad
+					// Nuevo peso a reportar
+					PesoConTara     = PesoRaw - OffsetPaTara;
+					DiferenciaPeso  = PesoRaw - PesoRawAntes;
+					PesoRawAntes    = PesoRaw;                    // Ojo: A comparar en siguiente ciclo
+
+				//	WeightReport[2] = PesoConTara;                   Nuevo peso 3o y 4o. bytes 
+					TmpStringLen2 = "";
+					TmpStringLen2 << std::setfill('0') << std::setw(4) << std::hex << PesoConTara;
+					WeightReport.replace(2, 2, TmpStringLen2);    // str.replace(pos,len,str2); 
+
+				//	WeightReport[4] = DiferenciaPeso;             // Nueva Diferencia a reportar 5o y 6o. bytes 
+					TmpStringLen2 = "";
+					TmpStringLen2 << std::setfill('0') << std::setw(4) << std::hex << DiferenciaPeso;
+					WeightReport.replace(4, 2, TmpStringLen2);    // str.replace(pos,len,str2);  	
+				}
+			//  Calcular y actualizar nueva paridad
+				char xor = WeightReport[0];        
+				for(int i=1; i<=5; i++)  // Calcula xor
+					{ xor = xor ^ WeightReport[i]; }
+				WeightReport[6] = xor;
+
+			}   // Termino del scope SkaleMutex
+			// Ojo: Al termino del scope y destruccion del objeto, libera SkaleMutex
+			Logger::trace("runUpdateThread unlocks SkaleMutex");
+		}
+		Logger::trace("Leaving the SkaleAdapter runUpdateThread thread");
+	}
+	
+}; // namespace ggk
 
 
 
-
+		/* PPPOOL de Codigo
 
 		// Read the next event, waiting until one arrives
 		std::vector<uint8_t> responsePacket = std::vector<uint8_t>();
@@ -371,7 +415,6 @@ void SkaleAdapter::runUpdWeightThread()
 
 	// Logger::trace("Leaving the SkaleAdapter event thread");
 }
-		*/
 
 // Reads current values from the controller
 //
@@ -561,5 +604,4 @@ void SkaleAdapter::setCommandResponse(uint16_t commandCode)
 	cvSkaleInfo.notify_one();
 	std::this_thread::sleep_until(proximo);
 }
-
-}; // namespace ggk
+*/
