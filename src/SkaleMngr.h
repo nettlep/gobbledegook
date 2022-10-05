@@ -41,9 +41,8 @@ public:
 	// Constants
 	//
 
-	// Average time beetween scale values update cycles
-	const auto kRescanTimeMS = std::chrono::milliseconds(33)
-
+	// Wait time before new scale values update cycle
+	const std::chrono::milliseconds kRescanTimeMS = std::chrono::milliseconds(33)
 /*
 	// How long to wait for a response event for commands sent to the adapter
 	static const int kMaxEventWaitTimeMS = 1000;
@@ -66,58 +65,22 @@ public:
 
 	enum SkaleStability : uint8_t
 	{
-		ESkaleLEDKmd   = 0xCE,   // weight stable
-		ESkaleTimerKmd = 0xCA,   // weight changing
+		ESkaleStable = 0xCE,   // weight stable
+		ESkaleChning = 0xCA,   // weight changing
 	};
 
 	enum SkaleKomds : uint8_t
 	{
-		ESkaleLEDKmd   = 0x0A,   // LED on/off
-		ESkaleTimerKmd = 0x0B,   // Timer on/off
-		ESkaleTareKmd  = 0x0F    // Tare
+		ESkaleLEDnGrKmd = 0x0A,   // LED and grams on/off
+		ESkaleTimerKmd  = 0x0B,   // Timer on/off
+		ESkaleTareKmd   = 0x0F    // Tare
 	};
 
-/*
-	// Skale Controller Settings
-	enum SkaleControllerSettings
-	{
-		ESkalePowered = (1<<0),
-		ESkaleConnectable = (1<<1),
-		ESkaleFastConnectable = (1<<2),
-		ESkaleDiscoverable = (1<<3),
-		ESkaleBondable = (1<<4),
-		ESkaleLinkLevelSecurity = (1<<5),
-		ESkaleSecureSimplePairing = (1<<6),
-		ESkaleBasicRate_EnhancedDataRate = (1<<7),
-		ESkaleHighSpeed = (1<<8),
-		ESkaleLowEnergy = (1<<9),
-		ESkaleAdvertising = (1<<10),
-		ESkaleSecureConnections = (1<<11),
-		ESkaleDebugKeys = (1<<12),
-		ESkalePrivacy = (1<<13),
-		ESkaleControllerConfiguration = (1<<14),
-		ESkaleStaticAddress = (1<<15)
-	};
-*/
-	// ???
-	static int16_t PesoRaw;      // Grams * 10
-	static int16_t PesoAntes;  
-	static int16_t PesoAhora;  
-	static int16_t DiferenciaPeso;  
-	static int16_t 
-	static int16_t dataSize;
-	// 03= Decent Type CE=weightstable 0000=weight 0000=Change =XORvalidation
+	static std::string SkaleAdapter::SkaleResponce();
 
-	static std::string  CurrntWeightReport = "\x03\xCE\x00\x00\x00\x00\xCD"; 
+	static bool SkaleAdapter::SkaleProcKmd(std::string SkaleKmnd);
 
-	void LeePesoHW()
-	{
-		//PesoRaw =  rand() % 100 - 50; 
-		PesoRaw =  0x0000;
-	}
-
-	void SkaleAdapter::runUpdateThread()
-
+	void SkaleAdapter::runUpdWeightThread();
 	struct SkaleHW
 	{
 
@@ -487,7 +450,24 @@ public:
 	void runEventThread();
 
 private:
+	// ???
+	// first time no blocking to update info
+	static bool    RespAskedAllredySent = true;
+	static int16_t PesoRaw        = 0x0000;      // Grams * 10
+	static int16_t PesoAntes      = 0x0000;
+	static int16_t PesoAhora      = 0x0000;
+	static int16_t DiferenciaPeso = 0x0000;
+	static uint8_t WeightStable   = true;
+	static bool    LedOn          = false;
+	static bool    GramsOn        = true;
+	static bool    TimerOn        = false;
+	// 03=Decent Type CE=weightstable 0000=weight 0000=Change =XorValidation
+	static std::string  WeightReport = "\x03\xCE\x00\x00\x00\x00\xCD"; 
+
+
 	// Private constructor for our Singleton <<--- Ojo
+	static int16_t SkaleAdapter::LeePesoHW();
+
 	SkaleAdapter() : SkaleInfoLock(SkaleInfoMutex), activeConnections(0) {}
 
 	// Uses a std::condition_variable to wait for a response event for the given `commandCode` or `timeoutMS` milliseconds.
@@ -507,17 +487,19 @@ private:
 	static std::thread eventThread;
 
 	// Our adapter information
-	AdapterSettings adapterSettings;
-	ControllerInformation controllerInformation;
-	VersionInformation versionInformation;
-	LocalName localName;
-
 	std::condition_variable cvSkaleInfo;
 	std::mutex SkaleInfoMutex;
 	std::unique_lock<std::mutex> SkaleInfoLock;
 	int conditionalValue;
 
+
 /*
+	AdapterSettings adapterSettings;
+	ControllerInformation controllerInformation;
+	VersionInformation versionInformation;
+	LocalName localName;
+
+
 	std::condition_variable cvCommandResponse;
 	std::mutex commandResponseMutex;
 	std::unique_lock<std::mutex> commandResponseLock;

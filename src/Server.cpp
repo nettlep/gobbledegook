@@ -260,6 +260,7 @@ Server::Server(const std::string &serviceName, const std::string &advertisingNam
 			// Standard characteristic "ReadValue" method call
 			.onReadValue(CHARACTERISTIC_METHOD_CALLBACK_LAMBDA
 			{
+				// const char *pTextString = self.getDataPointer<const char *>("text/string", "");
 				const char *pTextString = self.getDataPointer<const char *>("text/string", "");
 				self.methodReturnValue(pInvocation, pTextString, true);
 			})

@@ -227,7 +227,9 @@ int dataSetter(const char *pName, const void *pData)
 	}
 	else if (strName == "text/string")
 	{
-		serverDataTextString = static_cast<const char *>(pData);
+		// Aqui parace deber actualizarse
+		serverDataTextString = SkaleResponce;
+		// Original 		serverDataTextString = static_cast<const char *>(pData);
 		LogDebug((std::string("Server data: text string set to '") + serverDataTextString + "'").c_str());
 		return 1;
 	}
