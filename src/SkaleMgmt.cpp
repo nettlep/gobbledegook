@@ -51,7 +51,7 @@
 #include <thread>
 #include <mutex>
 
-#include "SkaleMngr.h"
+#include "SkaleMgmt.h"
 #include "Utils.h"
 #include "Logger.h"
 
@@ -123,16 +123,18 @@ static bool SkaleAdapter::SkaleProcKmd(std::string SkaleKmnd)
 	return true;
 }
 
-void SkaleAdapter::runUpdWeightThread()
+void SkaleAdapter::Tare()
 {
-	Logger::trace("Entering the SkaleAdapter runUpdateThread");
+	Logger::trace("Entering the SkaleAdapter Tare");
+/*
 	// first cicle will run with default values
 
 	// first time no blocking to update info
 	static bool    TmpRespAskedAllredySent = true;
 	static int16_t TmpPesoRaw        = 0x0000;   
-	static int16_t TmpPesoAntes      = 0x0000;
-	static int16_t TmpPesoAhora      = 0x0000;
+	static int16_t TmpPesoRawAntes      = 0x0000;
+	static int16_t TmpPesoConTara    = 0x0000;
+	static int16_t TmpOffsetPaTara   = 0x0000;
 	static int16_t TmpDiferenciaPeso = 0x0000;
 	static bool    TmpWeightStable   = true;
 	static bool    TmpLedOn          = false;
@@ -141,78 +143,113 @@ void SkaleAdapter::runUpdWeightThread()
 	// 03=Decent Type CE=weightstable 0000=weight 0000=Change =XorValidation
 	static std::string  TmpWeightReport = "\x03\xCE\x00\x00\x00\x00\xCD"; 
 	//                                     0-1o 1-2o 2-Peso 4-Dif   6-xor    
+*/
+		// Guardar informacion
+		// Ojo: La creacion del objeto lock "lk", Bloquea SkaleMutex
+		std::lock_guard<std::mutex> lk(SkaleMutex); 
+		Logger::trace("Skale Tare locks SkaleMutex to Udate")
+		// Actualiza informacion de Tara
 
-	while ( true )	// Continuo
+	// 	PesoRaw	       = ????                 Peso actual se asume actualizado
+		PesoConTara	   = 0x00;             // Se reportara Cero
+		OffsetPaTara   = PesoRaw;          // PesoCrudo actual es la nueva base (offset)
+
+		WeightStable   = true;             // Se asume estabilidad x un momento
+		PesoRawAntes   = PesoRaw;
+		DiferenciaPeso = 0x00;
+
+		WeightReport[1] = ESkaleStable;    // 2o byte = Parm Estabilidad
+		WeightReport[2] = PesoConTara;            
+		WeightReport[4] = DiferenciaPeso;  // 5o y 6o. bytes Diferencia Peso 
+		// Calcular y actualizar nueva paridad
+		char xor = WeightReport[0];        
+		for(int i=1; i<=5; i++)  // Calcula xor
+			{ xor = xor ^ WeightReport[i]; }
+		WeightReport[6] = xor;
+		// Ojo: El termino del scope y destruccion del objeto, libera SkaleMutex
+
+		Logger::trace("Leaving the SkaleAdapter Tare & Unlock SkaleMutex");
+}
+
+void SkaleAdapter::runUpdWeightThread()
+{
+	Logger::trace("Entering the SkaleAdapter runUpdateThread");
+	// first cicle will run with default values
+
+	// first time no blocking to update info
+	static int16_t TmpPesoRaw        = 0x0000;   
+
+	// 03=Decent Type CE=weightstable 0000=weight 0000=Change =XorValidation
+//	static std::string  WeightReport = "\x03\xCE\x00\x00\x00\x00\xCD"; 
+	//                                     0-1o 1-2o 2-Peso 4-Dif   6-xor    
+
+	while ( true )	// Continuo pruebita OJO <---- No todas las actualizaciones se envian al Cliente
 	{
-		// pruebita OJO <---- No todas las actualizaciones se envian al Cliente
 		// Pace the cicles to avoid waist CPU
 		std::this_thread::sleep_for(kRescanTimeMS);
-		// Info Anterior contenida en Tmp-Variables
 		
+		// Info Anterior contenida en Tmp-Variables
+
 		// Procesa la informacion nueva Info Solo si ya se envio una
 		// respuesta solicitada por el clente "RespAskedAllredySent"
 		// if (TmpRespAskedAllredySent)
-
-		// Lee Nueva Info desde el HW
-		TmpPesoRaw = SkaleAdapter::LeePesoHW();
-		//  Ojo: Antes si podria haber cambiado no asumir lo contrario
-		if ( TmpPesoRaw == TmpPesoAntes )
-		{
 			// continue;
-			TmpWeightStable = true;                 // pudo haber sido inestable
-			TmpWeightReport[1] = ESkaleStable;      // 2o byte = Parm Estabilidad
-		//	TmpWeightReport[2] = TmpPesoRaw;           3er y 4o bytes Parm Peso reportado no cambio
-			TmpDiferenciaPeso  = 0x00;              // la diferencia pudo haber sido <> x00
-			TmpWeightReport[4] = TmpDiferenciaPeso; // 5o y 6o. bytes Parm Diferencia Peso 
-		//	TmpPesoAntes = TmpPesoRaw;                 No cambio nuevo Anterior
-			char xor = 0x03 ;        // TmpWeightReport[0] allways 0x03
-			for(int i=1; i<=5; i++)  // Calcula xor
-			   { xor = xor ^ TmpWeightReport[i]; }
-			TmpWeightReport[6] = xor;
-		}
-		else
-		{
-			// 1er. byte nunca cambia x03
-			TmpWeightStable = false; 
-			TmpWeightReport[1] = ESkaleChning;      // 2o byte = Parm Estabilidad
-			TmpWeightReport[2] = TmpPesoRaw;        // 3er y 4o bytes Parm Peso Actual
-			TmpDiferenciaPeso  = TmpPesoRaw - TmpPesoAntes;
-			TmpWeightReport[4] = TmpDiferenciaPeso; // 5o y 6o. bytes Parm Diferencia Peso 
-			TmpPesoAntes = TmpPesoRaw;              // Cambia el peso a comparar en siguiente ciclo
 
-			char xor = 0x03 ;        // TmpWeightReport[0] allways 0x03
+		// Para no consumir tiempo se lee en Var temporal
+		TmpPesoRaw = SkaleAdapter::LeePesoHW(); 
+
+		if ( true ) {   // Solo para limitar scope
+
+			//Ahora si se actualiza Informacion
+			std::lock_guard<std::mutex> lk(SkaleMutex); 
+			Logger::trace("runUpdateThread locks SkaleMutex to Update")
+
+			PesoRaw = TmpPesoRaw;
+			//  Ojo: No asumir que si ahora es igual siempre a sido igual
+			if ( PesoRaw == PesoRawAntes )
+			{
+				WeightStable = true;                          // pudo haber sido inestable
+				WeightReport[1] = ESkaleStable;               // 2o byte = Parm Estabilidad
+
+			//	PesoConTara     = PesoRaw - OffsetPaTara;        No cambio 
+			//	WeightReport[2] = PesoConTara;                   Peso reportado no cambio
+
+				DiferenciaPeso  = 0x00;                       // si pudo haber cambiado
+				WeightReport[4] = DiferenciaPeso;             // 5o y 6o. bytes Diferencia Peso 
+				
+			//	PesoRawAntes = PesoRaw;                         No cambio 
+			}
+			else
+			{
+				WeightStable = false; 
+				WeightReport[1] = ESkaleChning;                 // 2o byte = Parm Estabilidad
+				// Nuevo peso a reportar
+				PesoConTara     = PesoRaw - OffsetPaTara;
+				WeightReport[2] = PesoConTara;               // 3er y 4o bytes Parm Peso Actual
+				// Nueva Diferencia a reportar
+				DiferenciaPeso  = PesoRaw - PesoRawAntes;
+				WeightReport[4] = DiferenciaPeso;            // 5o y 6o. bytes Parm Diferencia Peso 
+				PesoRawAntes    = PesoRaw;                   // Ojo: A comparar en siguiente ciclo
+			}
+			// Calcular y actualizar nueva paridad
+			char xor = WeightReport[0];        
 			for(int i=1; i<=5; i++)  // Calcula xor
-			   { xor = xor ^ TmpWeightReport[i]; }
-			TmpWeightReport[6] = xor;
+				{ xor = xor ^ WeightReport[i]; }
+			WeightReport[6] = xor;
+
+			// Ojo: El termino del scope y destruccion del objeto, libera SkaleMutex
+			Logger::trace("runUpdateThread unlocks SkaleMutex");
 		}
-		// Actualiza peso a reportar
-		// Ojo: La creacion del objeto lock "lk", Bloquea SkaleMutex
-		std::lock_guard<std::mutex> lk(SkaleMutex); 
-		Logger::trace("runUpdateThread locks SkaleMutex to write")
-		// Actualiza informacion
-		RespAskedAllredySent = TmpRespAskedAllredySent;
-		PesoRaw	       = TmpPesoRaw;      // Grams * 10
-		PesoAntes	   = TmpPesoAntes;
-		PesoAhora	   = TmpPesoAhora;
-		DiferenciaPeso = TmpDiferenciaPeso;
-		WeightStable   = TmpWeightStable;
-		LedOn	       = TmpLedOn;
-		GramsOn	       = TmpGramsOn ;
-		TimerOn	       = TmpTimerOn  ;
-		WeightReport   = TmpWeightReport; 
-		// Ojo: El termino del scope y destruccion del objeto, libera SkaleMutex
-		// Ojo: El termino del scope y destruccion del objeto, libera SkaleMutex
-		Logger::trace("runUpdateThread unlocks SkaleMutex to write");
 	}
 
 	Logger::trace("Leaving the SkaleAdapter runUpdateThread thread");
 }
 
-		/*
+}; // namespace ggk
 
 
 
-
+		/* PPPOOL de Codigo
 
 		// Read the next event, waiting until one arrives
 		std::vector<uint8_t> responsePacket = std::vector<uint8_t>();
@@ -371,7 +408,6 @@ void SkaleAdapter::runUpdWeightThread()
 
 	// Logger::trace("Leaving the SkaleAdapter event thread");
 }
-		*/
 
 // Reads current values from the controller
 //
@@ -561,5 +597,4 @@ void SkaleAdapter::setCommandResponse(uint16_t commandCode)
 	cvSkaleInfo.notify_one();
 	std::this_thread::sleep_until(proximo);
 }
-
-}; // namespace ggk
+*/

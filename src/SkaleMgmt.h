@@ -78,6 +78,8 @@ public:
 
 	static std::string SkaleAdapter::SkaleResponce();
 
+	void SkaleAdapter::Tare();
+
 	static bool SkaleAdapter::SkaleProcKmd(std::string SkaleKmnd);
 
 	void SkaleAdapter::runUpdWeightThread();
@@ -454,8 +456,9 @@ private:
 	// first time no blocking to update info
 	static bool    RespAskedAllredySent = true;
 	static int16_t PesoRaw        = 0x0000;      // Grams * 10
-	static int16_t PesoAntes      = 0x0000;
-	static int16_t PesoAhora      = 0x0000;
+	static int16_t PesoRawAntes      = 0x0000;
+	static int16_t PesoConTara    = 0x0000;
+	static int16_t OffsetPaTara   = 0x0000;
 	static int16_t DiferenciaPeso = 0x0000;
 	static uint8_t WeightStable   = true;
 	static bool    LedOn          = false;
