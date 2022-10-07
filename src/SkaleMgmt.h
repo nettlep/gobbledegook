@@ -37,12 +37,6 @@ class SkaleAdapter
 {
 public:
 
-	//
-	// Constants
-	//
-
-	// Wait time before new scale values update cycle
-	const std::chrono::milliseconds kRescanTimeMS = std::chrono::milliseconds(33)
 /*
 	// How long to wait for a response event for commands sent to the adapter
 	static const int kMaxEventWaitTimeMS = 1000;
@@ -57,24 +51,13 @@ public:
 	// Event type names
 	static const int kMinEventType = 0x0001;
 	static const char * const kEventTypeNames[kMaxEventType + 1];
-*/
 
 	//
 	// Types
 	//
 
-	enum SkaleStability : uint8_t
-	{
-		ESkaleStable = 0xCE,   // weight stable
-		ESkaleChning = 0xCA,   // weight changing
-	};
-
-	enum SkaleKomds : uint8_t
-	{
-		ESkaleLEDnGrKmd = 0x0A,   // LED and grams on/off
-		ESkaleTimerKmd  = 0x0B,   // Timer on/off
-		ESkaleTareKmd   = 0x0F    // Tare
-	};
+	enum SkaleKomds : 
+*/
 
 	static std::string SkaleAdapter::SkaleResponce();
 
@@ -453,6 +436,20 @@ public:
 
 private:
 	// ???
+
+	//
+	// Constants
+	//
+
+	// Wait time before new scale values update cycle
+	static const std::chrono::milliseconds kRescanTimeMS = std::chrono::milliseconds(33);
+
+	static const char kSkaleStable    = '\xCE'; // weight stable
+	static const char kSkaleChning    = '\xCA'; // weight changing
+	static const char kSkaleLEDnGrKmd = '\x0A'; // LED and grams on/off
+	static const char kSkaleTimerKmd  = '\x0B'; // Timer on/off
+	static const char kSkaleTareKmd   = '\x0F'; // Tare
+
 	// first time no blocking to update info
 	static bool    RespAskedAllredySent = true;
 	static int16_t PesoRaw        = 0x0000;      // Grams * 10
@@ -466,7 +463,6 @@ private:
 	static bool    TimerOn        = false;
 	// 03=Decent Type CE=weightstable 0000=weight 0000=Change =XorValidation
 	static std::string  WeightReport = "\x03\xCE\x00\x00\x00\x00\xCD"; 
-
 
 	// Private constructor for our Singleton <<--- Ojo
 	static int16_t SkaleAdapter::LeePesoHW();

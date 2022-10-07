@@ -137,14 +137,14 @@ namespace ggk {
 			// Actualiza informacion de Tara
 
 		// 	PesoRaw	       = ????                 Peso actual se asume actualizado
-			PesoConTara	   = 0x00;             // Se reportara Cero
+			PesoConTara	   = 0x0000;           // Se reportara Cero
 			OffsetPaTara   = PesoRaw;          // PesoCrudo actual es la nueva base (offset)
 
 			WeightStable   = true;             // Se asume estabilidad x un momento
 			PesoRawAntes   = PesoRaw;
-			DiferenciaPeso = 0x00;
+			DiferenciaPeso = 0x0000;
 
-			WeightReport[1] = ESkaleStable;    // 2o byte = Parm Estabilidad
+			WeightReport[1] = kSkaleStable;    // 2o byte = Parm Estabilidad
 			
 			std::ostringstream TmpStringLen2;
 
@@ -173,7 +173,7 @@ namespace ggk {
 		// first cicle will run with default values
 
 		int16_t            TmpPesoRaw;   
-		std::ostringstream TmpStringLen2 = '';
+		std::ostringstream TmpStringLen2 = "";
 
 		// 03=Decent Type CE=weightstable 0000=weight 0000=Change =XorValidation
 		//	static std::string  WeightReport = "\x03\xCE\x00\x00\x00\x00\xCD"; 
@@ -205,10 +205,10 @@ namespace ggk {
 				if ( PesoRaw == PesoRawAntes )
 				{
 					WeightStable = true;                          // pudo haber sido inestable
-					WeightReport[1] = ESkaleStable;               // 2o byte = Parm Estabilidad
+					WeightReport[1] = kSkaleStable;               // 2o byte = Parm Estabilidad
 
 				//	PesoConTara     = PesoRaw - OffsetPaTara;        No cambio 
-					DiferenciaPeso  = 0x00;                       // si pudo haber cambiado
+					DiferenciaPeso  = 0x0000;                       // si pudo haber cambiado
 				//	PesoRawAntes    = PesoRaw;                       No cambio 
 
 				//	WeightReport[2] = PesoConTara;                   Peso reportado no cambio 3o y 4o. bytes 
@@ -224,7 +224,7 @@ namespace ggk {
 				else
 				{
 					WeightStable = false; 
-					WeightReport[1] = ESkaleChning;               // 2o byte = Parm Estabilidad
+					WeightReport[1] = kSkaleChning;               // 2o byte = Parm Estabilidad
 					// Nuevo peso a reportar
 					PesoConTara     = PesoRaw - OffsetPaTara;
 					DiferenciaPeso  = PesoRaw - PesoRawAntes;
@@ -253,129 +253,6 @@ namespace ggk {
 		Logger::trace("Leaving the SkaleAdapter runUpdateThread thread");
 	}
 	
-=======
-void SkaleAdapter::Tare()
-{
-	Logger::trace("Entering the SkaleAdapter Tare");
-/*
-	// first cicle will run with default values
-
-	// first time no blocking to update info
-	static bool    TmpRespAskedAllredySent = true;
-	static int16_t TmpPesoRaw        = 0x0000;   
-	static int16_t TmpPesoRawAntes      = 0x0000;
-	static int16_t TmpPesoConTara    = 0x0000;
-	static int16_t TmpOffsetPaTara   = 0x0000;
-	static int16_t TmpDiferenciaPeso = 0x0000;
-	static bool    TmpWeightStable   = true;
-	static bool    TmpLedOn          = false;
-	static bool    TmpGramsOn        = true;
-	static bool    TmpTimerOn        = false;
-	// 03=Decent Type CE=weightstable 0000=weight 0000=Change =XorValidation
-	static std::string  TmpWeightReport = "\x03\xCE\x00\x00\x00\x00\xCD"; 
-	//                                     0-1o 1-2o 2-Peso 4-Dif   6-xor    
-*/
-		// Guardar informacion
-		// Ojo: La creacion del objeto lock "lk", Bloquea SkaleMutex
-		std::lock_guard<std::mutex> lk(SkaleMutex); 
-		Logger::trace("Skale Tare locks SkaleMutex to Udate")
-		// Actualiza informacion de Tara
-
-	// 	PesoRaw	       = ????                 Peso actual se asume actualizado
-		PesoConTara	   = 0x00;             // Se reportara Cero
-		OffsetPaTara   = PesoRaw;          // PesoCrudo actual es la nueva base (offset)
-
-		WeightStable   = true;             // Se asume estabilidad x un momento
-		PesoRawAntes   = PesoRaw;
-		DiferenciaPeso = 0x00;
-
-		WeightReport[1] = ESkaleStable;    // 2o byte = Parm Estabilidad
-		WeightReport[2] = PesoConTara;            
-		WeightReport[4] = DiferenciaPeso;  // 5o y 6o. bytes Diferencia Peso 
-		// Calcular y actualizar nueva paridad
-		char xor = WeightReport[0];        
-		for(int i=1; i<=5; i++)  // Calcula xor
-			{ xor = xor ^ WeightReport[i]; }
-		WeightReport[6] = xor;
-		// Ojo: El termino del scope y destruccion del objeto, libera SkaleMutex
-
-		Logger::trace("Leaving the SkaleAdapter Tare & Unlock SkaleMutex");
-}
-
-void SkaleAdapter::runUpdWeightThread()
-{
-	Logger::trace("Entering the SkaleAdapter runUpdateThread");
-	// first cicle will run with default values
-
-	// first time no blocking to update info
-	static int16_t TmpPesoRaw        = 0x0000;   
-
-	// 03=Decent Type CE=weightstable 0000=weight 0000=Change =XorValidation
-//	static std::string  WeightReport = "\x03\xCE\x00\x00\x00\x00\xCD"; 
-	//                                     0-1o 1-2o 2-Peso 4-Dif   6-xor    
-
-	while ( true )	// Continuo pruebita OJO <---- No todas las actualizaciones se envian al Cliente
-	{
-		// Pace the cicles to avoid waist CPU
-		std::this_thread::sleep_for(kRescanTimeMS);
-		
-		// Info Anterior contenida en Tmp-Variables
-
-		// Procesa la informacion nueva Info Solo si ya se envio una
-		// respuesta solicitada por el clente "RespAskedAllredySent"
-		// if (TmpRespAskedAllredySent)
-			// continue;
-
-		// Para no consumir tiempo se lee en Var temporal
-		TmpPesoRaw = SkaleAdapter::LeePesoHW(); 
-
-		if ( true ) {   // Solo para limitar scope
-
-			//Ahora si se actualiza Informacion
-			std::lock_guard<std::mutex> lk(SkaleMutex); 
-			Logger::trace("runUpdateThread locks SkaleMutex to Update")
-
-			PesoRaw = TmpPesoRaw;
-			//  Ojo: No asumir que si ahora es igual siempre a sido igual
-			if ( PesoRaw == PesoRawAntes )
-			{
-				WeightStable = true;                          // pudo haber sido inestable
-				WeightReport[1] = ESkaleStable;               // 2o byte = Parm Estabilidad
-
-			//	PesoConTara     = PesoRaw - OffsetPaTara;        No cambio 
-			//	WeightReport[2] = PesoConTara;                   Peso reportado no cambio
-
-				DiferenciaPeso  = 0x00;                       // si pudo haber cambiado
-				WeightReport[4] = DiferenciaPeso;             // 5o y 6o. bytes Diferencia Peso 
-				
-			//	PesoRawAntes = PesoRaw;                         No cambio 
-			}
-			else
-			{
-				WeightStable = false; 
-				WeightReport[1] = ESkaleChning;                 // 2o byte = Parm Estabilidad
-				// Nuevo peso a reportar
-				PesoConTara     = PesoRaw - OffsetPaTara;
-				WeightReport[2] = PesoConTara;               // 3er y 4o bytes Parm Peso Actual
-				// Nueva Diferencia a reportar
-				DiferenciaPeso  = PesoRaw - PesoRawAntes;
-				WeightReport[4] = DiferenciaPeso;            // 5o y 6o. bytes Parm Diferencia Peso 
-				PesoRawAntes    = PesoRaw;                   // Ojo: A comparar en siguiente ciclo
-			}
-			// Calcular y actualizar nueva paridad
-			char xor = WeightReport[0];        
-			for(int i=1; i<=5; i++)  // Calcula xor
-				{ xor = xor ^ WeightReport[i]; }
-			WeightReport[6] = xor;
-
-			// Ojo: El termino del scope y destruccion del objeto, libera SkaleMutex
-			Logger::trace("runUpdateThread unlocks SkaleMutex");
-		}
-	}
-
-	Logger::trace("Leaving the SkaleAdapter runUpdateThread thread");
-}
-
 >>>>>>> fa57b949569fa7d9f3649af1d36664409ff31183
 }; // namespace ggk
 
