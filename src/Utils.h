@@ -170,6 +170,9 @@ struct Utils
 	// Extracts a string from an array of bytes ("ay")
 	static std::string stringFromGVariantByteArray(const GVariant *pVariant);
 
+	// Extracts a VECTOR from an array of bytes ("ay")
+	static std::vector<guint8> vectorFromGVariantByteArray(const GVariant *pVariant);
+
 	// -----------------------------------------------------------------------------------------------------------------------------
 	// Endian conversion
 	//

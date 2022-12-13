@@ -426,4 +426,14 @@ std::string Utils::stringFromGVariantByteArray(const GVariant *pVariant)
 	return array.data();
 }
 
+// Extracts a VECTOR from an array of bytes ("ay")
+std::vector<guint8> Utils::vectorFromGVariantByteArray(const GVariant *pVariant)
+{
+    gsize size;
+    gconstpointer pPtr = g_variant_get_fixed_array(const_cast<GVariant *>(pVariant), &size, 1);
+    std::vector<guint8> array(size + 1, 0);
+    memcpy(array.data(), pPtr, size);
+    return array;
+}
+
 }; // namespace ggk
