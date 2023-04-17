@@ -229,7 +229,7 @@ struct Mgmt {
     // Returns true on success, otherwise false
     bool setAdvertising(uint8_t newState);
 
-    bool addAdvertising(std::string shortName, const uint8_t *uuid);
+    bool addAdvertising(std::string shortName, const uint16_t *uuid);
 
     //
     // Utilitarian

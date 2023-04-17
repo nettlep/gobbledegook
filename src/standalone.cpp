@@ -290,7 +290,7 @@ int main(int argc, char **ppArgv) {
     //     This first parameter (the service name) must match tha name configured in the D-Bus permissions. See the
     //     Readme.md file for more information.
     //
-    if (!ggkStart("huupe", "Huupe-QWERASDF", "QWERASDF", dataGetter, dataSetter, kMaxAsyncInitTimeoutMS)) {
+    if (!ggkStart("huupe", "Huupe Device", "Huupe", dataGetter, dataSetter, kMaxAsyncInitTimeoutMS)) {
         return -1;
     }
 

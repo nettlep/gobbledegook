@@ -9,3 +9,5 @@ src/.deps/
 src/Makefile
 stamp-h1
 *.o
+*.a
+src/standalone
