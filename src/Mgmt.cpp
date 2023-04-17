@@ -186,7 +186,7 @@ bool Mgmt::setAdvertising(uint8_t newState) {
 bool Mgmt::addAdvertising(std::string shortName, const uint8_t *uuid) {
     Logger::debug(SSTR << "addAdvertising()");
     constexpr size_t ADVERTISING_SHORTNAME_MAX_LEN = 8;
-    constexpr size_t ADVERTISING_UUID_LEN = 16;
+    constexpr size_t ADVERTISING_UUID_LEN = 2;
     constexpr size_t ADVERTISING_MAX_DATALEN = 2 + ADVERTISING_SHORTNAME_MAX_LEN + 2 + ADVERTISING_UUID_LEN;
 
     struct SRequest : HciAdapter::HciHeader {
@@ -214,7 +214,7 @@ bool Mgmt::addAdvertising(std::string shortName, const uint8_t *uuid) {
     request.scanRspLen = 0;
 
     request.data[0] = static_cast<uint8_t>(ADVERTISING_UUID_LEN + 1);
-    request.data[1] = 0x07; // Incomplete UUID list
+    request.data[1] = 0x03; // Incomplete UUID list
     memcpy(&request.data[2], uuid, ADVERTISING_UUID_LEN);
 
     request.data[2 + ADVERTISING_UUID_LEN] = static_cast<uint8_t>(1 + shortNameEffectiveLen);

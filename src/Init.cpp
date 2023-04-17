@@ -767,8 +767,7 @@ void configureAdapter() {
                 //     return;
                 // }
                 Logger::debug(SSTR << "Change the Advertising state.");
-                const uint8_t id[16] =
-                    {0x00, 0x00, 0xB3, 0x70, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5f, 0x9b, 0x34, 0xfb};
+                const uint8_t id[16] = { 0x70, 0xb3};
                 // 0000-b370-0000-1000-8000-00805f9b34fb
                 if (!mgmt.addAdvertising(advertisingShortName.c_str(), id)) {
                     setRetry();
