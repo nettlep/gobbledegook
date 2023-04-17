@@ -199,17 +199,19 @@ bool Mgmt::addAdvertising(std::string shortName, const uint8_t *uuid) {
         uint8_t data[ADVERTISING_MAX_DATALEN];
     } __attribute__((packed));
 
+    size_t shortNameEffectiveLen = std::min(ADVERTISING_SHORTNAME_MAX_LEN, shortName.length());
+
     SRequest request;
     request.code = Mgmt::EAddAdvertisingCommand;
     request.controllerId = controllerIndex;
-    request.dataSize = sizeof(SRequest) - sizeof(HciAdapter::HciHeader);
+    request.dataSize =
+        sizeof(SRequest) - sizeof(HciAdapter::HciHeader) - (ADVERTISING_SHORTNAME_MAX_LEN - shortNameEffectiveLen);
 
     request.instance = 1u;
     request.flags = 3u; // Connectable && Discoverable, see Bluez/lib/mgmt.h
     request.duration = 0;
     request.timeout = 0;
 
-    size_t shortNameEffectiveLen = std::min(ADVERTISING_SHORTNAME_MAX_LEN, shortName.length());
     request.advDataLen = ADVERTISING_MAX_DATALEN - (ADVERTISING_SHORTNAME_MAX_LEN - shortNameEffectiveLen);
     request.scanRspLen = 0;
 
