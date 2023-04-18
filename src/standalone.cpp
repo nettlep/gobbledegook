@@ -28,7 +28,7 @@
 //
 //         Two of the parameters to `ggkStart()` are delegates responsible for providing data accessors for the server,
 //         a `GGKServerDataGetter` delegate and a 'GGKServerDataSetter' delegate. The getter method simply receives a
-//         string name (for example, "battery/level") and returns a void pointer to that data (for example: `(void
+//         string name (for example, "Huupe/volume") and returns a void pointer to that data (for example: `(void
 //         *)&batteryLevel`). The setter does the same only in reverse.
 //
 //         While the server is running, you will likely need to update the data being served. This is done by calling
@@ -112,8 +112,8 @@ static const int kMaxAsyncInitTimeoutMS = 30 * 1000;
 // Server data values
 //
 
-// The battery level ("battery/level") reported by the server (see Server.cpp)
-static uint8_t serverDataBatteryLevel = 78;
+// The battery level ("Huupe/volume") reported by the server (see Server.cpp)
+static uint8_t serverVolume = 78;
 
 // The text string ("text/string") used by our custom text string service (see Server.cpp)
 static std::string serverDataTextString = "Hello, world!";
@@ -202,8 +202,8 @@ const void *dataGetter(const char *pName) {
 
     std::string strName = pName;
 
-    if (strName == "battery/level") {
-        return &serverDataBatteryLevel;
+    if (strName == "Huupe/volume") {
+        return &serverVolume;
     } else if (strName == "text/string") {
         return serverDataTextString.c_str();
     }
@@ -230,9 +230,29 @@ int dataSetter(const char *pName, const void *pData) {
 
     std::string strName = pName;
 
-    if (strName == "battery/level") {
-        serverDataBatteryLevel = *static_cast<const uint8_t *>(pData);
-        LogDebug((std::string("Server data: battery level set to ") + std::to_string(serverDataBatteryLevel)).c_str());
+    if (strName == "Huupe/volume") {
+        serverVolume = *static_cast<const uint8_t *>(pData);
+        LogDebug((std::string("Server data: volume set to ") + std::to_string(serverVolume)).c_str());
+        return 1;
+    } else if (strName == "Huupe/runGame") {
+        const std::string args = std::string(static_cast<const char *>(pData));
+        LogDebug((std::string("Server data: runGame('") + args + ")'").c_str());
+        return 1;
+    } else if (strName == "Huupe/runTraining") {
+        const std::string args = std::string(static_cast<const char *>(pData));
+        LogDebug((std::string("Server data: runTraining('") + args + "')").c_str());
+        return 1;
+    } else if (strName == "Huupe/finishGame") {
+        LogDebug("Server data: finishGame()");
+        return 1;
+    } else if (strName == "Huupe/navigateHome") {
+        LogDebug("Server data: navigateHome()");
+        return 1;
+    } else if (strName == "Huupe/playPause") {
+        LogDebug("Server data: playPause()");
+        return 1;
+    } else if (strName == "Huupe/playVideo") {
+        LogDebug("Server data: playVideo()");
         return 1;
     } else if (strName == "text/string") {
         serverDataTextString = static_cast<const char *>(pData);
@@ -298,10 +318,10 @@ int main(int argc, char **ppArgv) {
     //
     // While we wait, every 15 ticks, drop the battery level by one percent until we reach 0
     while (ggkGetServerRunState() < EStopping) {
-        std::this_thread::sleep_for(std::chrono::seconds(15));
-
-        serverDataBatteryLevel = std::max(serverDataBatteryLevel - 1, 0);
-        ggkNofifyUpdatedCharacteristic("/com/gobbledegook/battery/level");
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::cout << "ok\n";
+        // serverVolume = std::max(serverVolume - 1, 0);
+        // ggkNofifyUpdatedCharacteristic("/com/huupe/Huupe/volume");
     }
 
     // Wait for the server to come to a complete stop (CTRL-C from the command line)
