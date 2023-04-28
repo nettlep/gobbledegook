@@ -41,5 +41,9 @@ gobbledegook_sources = [
 gobbledegook_lib = static_library(
     'gobbledegook', 
     gobbledegook_sources,
-    dependencies: [glib_dep, gmodule_dep, gio_dep]
+    dependencies: [
+        dependency('glib-2.0', version: '>= 2.68.0' , fallback: ['glib', 'libglib_dep']),
+        dependency('gmodule-2.0', fallback: ['glib', 'libgmodule_dep']),
+        dependency('gio-2.0', fallback: ['glib', 'libgio_dep'])
+        ]
 )
