@@ -490,15 +490,15 @@ Server::Server(
         })
         .gattCharacteristicEnd()
 
-        // volume
-        .gattCharacteristicBegin("volume", "b372", {"read", "write"})
+        // settings
+        .gattCharacteristicBegin("settings", "b372", {"read", "write"})
         .onReadValue(CHARACTERISTIC_METHOD_CALLBACK_LAMBDA {
-            const char *pTextString = self.getDataPointer<const char *>("Huupe/volume", "");
+            const char *pTextString = self.getDataPointer<const char *>("Huupe/settings", "");
             self.methodReturnValue(pInvocation, pTextString, true);
         })
         .onWriteValue(CHARACTERISTIC_METHOD_CALLBACK_LAMBDA {
             GVariant *pAyBuffer = g_variant_get_child_value(pParameters, 0);
-            self.setDataPointer("Huupe/volume", Utils::stringFromGVariantByteArray(pAyBuffer).c_str());
+            self.setDataPointer("Huupe/settings", Utils::stringFromGVariantByteArray(pAyBuffer).c_str());
             self.callOnUpdatedValue(pConnection, pUserData);
             self.methodReturnVariant(pInvocation, NULL);
         })

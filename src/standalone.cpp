@@ -28,7 +28,7 @@
 //
 //         Two of the parameters to `ggkStart()` are delegates responsible for providing data accessors for the server,
 //         a `GGKServerDataGetter` delegate and a 'GGKServerDataSetter' delegate. The getter method simply receives a
-//         string name (for example, "Huupe/volume") and returns a void pointer to that data (for example: `(void
+//         string name (for example, "Huupe/settings") and returns a void pointer to that data (for example: `(void
 //         *)&batteryLevel`). The setter does the same only in reverse.
 //
 //         While the server is running, you will likely need to update the data being served. This is done by calling
@@ -112,7 +112,7 @@ static const int kMaxAsyncInitTimeoutMS = 30 * 1000;
 // Server data values
 //
 
-// The battery level ("Huupe/volume") reported by the server (see Server.cpp)
+// The battery level ("Huupe/settings") reported by the server (see Server.cpp)
 static uint8_t serverVolume = 78;
 
 // The text string ("text/string") used by our custom text string service (see Server.cpp)
@@ -202,7 +202,7 @@ const void *dataGetter(const char *pName) {
 
     std::string strName = pName;
 
-    if (strName == "Huupe/volume") {
+    if (strName == "Huupe/settings") {
         return &serverVolume;
     } else if (strName == "text/string") {
         return serverDataTextString.c_str();
@@ -230,7 +230,7 @@ int dataSetter(const char *pName, const void *pData) {
 
     std::string strName = pName;
 
-    if (strName == "Huupe/volume") {
+    if (strName == "Huupe/settings") {
         serverVolume = *static_cast<const uint8_t *>(pData);
         LogDebug((std::string("Server data: volume set to ") + std::to_string(serverVolume)).c_str());
         return 1;
@@ -321,7 +321,7 @@ int main(int argc, char **ppArgv) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
         std::cout << "ok\n";
         // serverVolume = std::max(serverVolume - 1, 0);
-        // ggkNofifyUpdatedCharacteristic("/com/huupe/Huupe/volume");
+        // ggkNofifyUpdatedCharacteristic("/com/huupe/Huupe/settings");
     }
 
     // Wait for the server to come to a complete stop (CTRL-C from the command line)
