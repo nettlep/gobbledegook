@@ -504,6 +504,29 @@ Server::Server(
         })
         .gattCharacteristicEnd()
 
+        .gattCharacteristicBegin("streamState", "b380", {"read", "notify"})
+        .onReadValue(CHARACTERISTIC_METHOD_CALLBACK_LAMBDA {
+            const char *pTextString = self.getDataPointer<const char *>("Huupe/streamState", "");
+            self.methodReturnValue(pInvocation, pTextString, true);
+        })
+        // We can handle updates in any way we wish, but the most common use is to send a change notification.
+        .onUpdatedValue(CHARACTERISTIC_UPDATED_VALUE_CALLBACK_LAMBDA {
+            const char *pTextString = self.getDataPointer<const char *>("Huupe/streamState", "");
+            self.sendChangeNotificationValue(pConnection, pTextString);
+            return true;
+        })
+        .gattCharacteristicEnd()
+
+        .gattCharacteristicBegin("streamCmd", "b381", {"write"})
+        .onWriteValue(CHARACTERISTIC_METHOD_CALLBACK_LAMBDA {
+            GVariant *pAyBuffer = g_variant_get_child_value(pParameters, 0);
+            self.setDataPointer("Huupe/streamCmd", Utils::stringFromGVariantByteArray(pAyBuffer).c_str());
+
+            self.callOnUpdatedValue(pConnection, pUserData);
+            self.methodReturnVariant(pInvocation, NULL);
+            Logger::always(Utils::stringFromGVariantByteArray(pAyBuffer).c_str());
+        })
+        .gattCharacteristicEnd()
         // // Characteristic: String value (custom: 00000002-1E3C-FAD4-74E2-97A033F1BFAA)
         // .gattCharacteristicBegin("game", "b373", {"read", "write", "notify"})
 
