@@ -377,4 +377,13 @@ std::string Utils::stringFromGVariantByteArray(const GVariant *pVariant) {
     return array.data();
 }
 
+std::vector<guchar> *Utils::bytesVectorFromGVariantByteArray(const GVariant *pVariant) {
+    gsize size;
+    gconstpointer pPtr = g_variant_get_fixed_array(const_cast<GVariant *>(pVariant), &size, 1);
+    // TODO: memory leak
+    std::vector<guchar> *array = new std::vector<guchar>(size, 0);
+    memcpy(array->data(), pPtr, size);
+    return array;
+}
+
 }; // namespace ggk
