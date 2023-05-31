@@ -490,20 +490,6 @@ Server::Server(
         })
         .gattCharacteristicEnd()
 
-        // settings
-        .gattCharacteristicBegin("settings", "b372", {"read", "write"})
-        .onReadValue(CHARACTERISTIC_METHOD_CALLBACK_LAMBDA {
-            const char *pTextString = self.getDataPointer<const char *>("Huupe/settings", "");
-            self.methodReturnValue(pInvocation, pTextString, true);
-        })
-        .onWriteValue(CHARACTERISTIC_METHOD_CALLBACK_LAMBDA {
-            GVariant *pAyBuffer = g_variant_get_child_value(pParameters, 0);
-            self.setDataPointer("Huupe/settings", Utils::stringFromGVariantByteArray(pAyBuffer).c_str());
-            self.callOnUpdatedValue(pConnection, pUserData);
-            self.methodReturnVariant(pInvocation, NULL);
-        })
-        .gattCharacteristicEnd()
-
         .gattCharacteristicBegin("streamState", "b380", {"read", "notify"})
         .onReadValue(CHARACTERISTIC_METHOD_CALLBACK_LAMBDA {
             const char *pTextString = self.getDataPointer<const char *>("Huupe/streamState", "");
@@ -528,7 +514,35 @@ Server::Server(
         })
         .gattCharacteristicEnd()
 
-        // settings: WiFi
+        // settings: Settings
+        .gattCharacteristicBegin("settings/get", "b390", {"read", "notify"})
+        .onReadValue(CHARACTERISTIC_METHOD_CALLBACK_LAMBDA {
+            const std::vector<guint8> bytes = self.getDataValue("Huupe/settings/get", std::vector<guint8>());
+            self.methodReturnValue(pInvocation, bytes, true);
+        })
+        .onUpdatedValue(CHARACTERISTIC_UPDATED_VALUE_CALLBACK_LAMBDA {
+            const std::vector<guint8> bytes = self.getDataValue("Huupe/settings/get", std::vector<guint8>());
+            self.sendChangeNotificationValue(pConnection, bytes);
+            return true;
+        })
+        .gattCharacteristicEnd()
+
+        // settings: SettingsCmd
+        .gattCharacteristicBegin("settings/set", "b391", {"write", "notify"})
+        .onWriteValue(CHARACTERISTIC_METHOD_CALLBACK_LAMBDA {
+            GVariant *pAyBuffer = g_variant_get_child_value(pParameters, 0);
+            self.setDataPointer("Huupe/settings/set", Utils::bytesVectorFromGVariantByteArray(pAyBuffer));
+            self.callOnUpdatedValue(pConnection, pUserData);
+            self.methodReturnVariant(pInvocation, NULL);
+        })
+        .onUpdatedValue(CHARACTERISTIC_UPDATED_VALUE_CALLBACK_LAMBDA {
+            const std::vector<guint8> bytes = self.getDataValue("Huupe/settings/set", std::vector<guint8>());
+            self.sendChangeNotificationValue(pConnection, bytes);
+            return true;
+        })
+        .gattCharacteristicEnd()
+
+        // settings: WiFiNetwork
         .gattCharacteristicBegin("settings/wifi/list", "b392", {"read", "notify"})
         .onReadValue(CHARACTERISTIC_METHOD_CALLBACK_LAMBDA {
             const std::vector<guint8> bytes = self.getDataValue("Huupe/settings/wifi/list", std::vector<guint8>());
@@ -541,7 +555,7 @@ Server::Server(
         })
         .gattCharacteristicEnd()
 
-        // settings: WiFi
+        // settings: WiFiNetworkCmd
         .gattCharacteristicBegin("settings/wifi/set", "b393", {"write", "notify"})
         .onWriteValue(CHARACTERISTIC_METHOD_CALLBACK_LAMBDA {
             GVariant *pAyBuffer = g_variant_get_child_value(pParameters, 0);
