@@ -316,6 +316,8 @@ void HciAdapter::runEventThread() {
             DeviceConnectedEvent event(responsePacket);
             activeConnections += 1;
             Logger::debug(SSTR << "  > Connection count incremented to " << activeConnections);
+            Mgmt mgmt;
+            mgmt.setAdvertising(1);
             break;
         }
         // Command status event
@@ -327,6 +329,8 @@ void HciAdapter::runEventThread() {
             } else {
                 Logger::debug(SSTR << "  > Connection count already at zero, ignoring non-connected disconnect event");
             }
+            Mgmt mgmt;
+            mgmt.setAdvertising(1);
             break;
         }
         // Unsupported
