@@ -48,7 +48,7 @@ GattDescriptor::GattDescriptor(DBusObject &owner, GattCharacteristic &characteri
 // This method compliments `GattCharacteristic::gattDescriptorBegin()`
 GattCharacteristic &GattDescriptor::gattDescriptorEnd()
 {
-	return characteristic;
+    return characteristic;
 }
 
 //
@@ -58,16 +58,16 @@ GattCharacteristic &GattDescriptor::gattDescriptorEnd()
 // Locates a D-Bus method within this D-Bus interface
 bool GattDescriptor::callMethod(const std::string &methodName, GDBusConnection *pConnection, GVariant *pParameters, GDBusMethodInvocation *pInvocation, gpointer pUserData) const
 {
-	for (const DBusMethod &method : methods)
-	{
-		if (methodName == method.getName())
-		{
-			method.call<GattDescriptor>(pConnection, getPath(), getName(), methodName, pParameters, pInvocation, pUserData);
-			return true;
-		}
-	}
+    for (const DBusMethod &method : methods)
+    {
+        if (methodName == method.getName())
+        {
+            method.call<GattDescriptor>(pConnection, getPath(), getName(), methodName, pParameters, pInvocation, pUserData);
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 }
 
 // Adds an event to the descriptor and returns a refereence to 'this` to enable method chaining in the server description
@@ -76,8 +76,8 @@ bool GattDescriptor::callMethod(const std::string &methodName, GDBusConnection *
 // TickEvent::Callback type. We also return our own type. This simplifies the server description by allowing call to chain.
 GattDescriptor &GattDescriptor::onEvent(int tickFrequency, void *pUserData, EventCallback callback)
 {
-	events.push_back(TickEvent(this, tickFrequency, reinterpret_cast<TickEvent::Callback>(callback), pUserData));
-	return *this;
+    events.push_back(TickEvent(this, tickFrequency, reinterpret_cast<TickEvent::Callback>(callback), pUserData));
+    return *this;
 }
 
 // Ticks events within this descriptor
@@ -85,10 +85,10 @@ GattDescriptor &GattDescriptor::onEvent(int tickFrequency, void *pUserData, Even
 // Note: we specifically override this method in order to translate the generic TickEvent::Callback into our own EventCallback
 void GattDescriptor::tickEvents(GDBusConnection *pConnection, void *pUserData) const
 {
-	for (const TickEvent &event : events)
-	{
-		event.tick<GattDescriptor>(getPath(), pConnection, pUserData);
-	}
+    for (const TickEvent &event : events)
+    {
+        event.tick<GattDescriptor>(getPath(), pConnection, pUserData);
+    }
 }
 
 // Specialized support for ReadlValue method
@@ -101,10 +101,10 @@ void GattDescriptor::tickEvents(GDBusConnection *pConnection, void *pUserData) c
 //     Output args: value   - "ay"
 GattDescriptor &GattDescriptor::onReadValue(MethodCallback callback)
 {
-	// array{byte} ReadValue(dict options)
-	const char *inArgs[] = {"a{sv}", nullptr};
-	addMethod("ReadValue", inArgs, "ay", reinterpret_cast<DBusMethod::Callback>(callback));
-	return *this;
+    // array{byte} ReadValue(dict options)
+    const char *inArgs[] = {"a{sv}", nullptr};
+    addMethod("ReadValue", inArgs, "ay", reinterpret_cast<DBusMethod::Callback>(callback));
+    return *this;
 }
 
 // Specialized support for WriteValue method
@@ -118,9 +118,9 @@ GattDescriptor &GattDescriptor::onReadValue(MethodCallback callback)
 //     Output args: void
 GattDescriptor &GattDescriptor::onWriteValue(MethodCallback callback)
 {
-	const char *inArgs[] = {"ay", "a{sv}", nullptr};
-	addMethod("WriteValue", inArgs, nullptr, reinterpret_cast<DBusMethod::Callback>(callback));
-	return *this;
+    const char *inArgs[] = {"ay", "a{sv}", nullptr};
+    addMethod("WriteValue", inArgs, nullptr, reinterpret_cast<DBusMethod::Callback>(callback));
+    return *this;
 }
 
 // Custom support for handling updates to our descriptor's value
@@ -135,8 +135,8 @@ GattDescriptor &GattDescriptor::onWriteValue(MethodCallback callback)
 // `callOnUpdatedValue` for more information.
 GattDescriptor &GattDescriptor::onUpdatedValue(UpdatedValueCallback callback)
 {
-	pOnUpdatedValueFunc = callback;
-	return *this;
+    pOnUpdatedValueFunc = callback;
+    return *this;
 }
 
 // Calls the onUpdatedValue method, if one was set.
@@ -158,13 +158,13 @@ GattDescriptor &GattDescriptor::onUpdatedValue(UpdatedValueCallback callback)
 //      })
 bool GattDescriptor::callOnUpdatedValue(GDBusConnection *pConnection, void *pUserData) const
 {
-	if (nullptr == pOnUpdatedValueFunc)
-	{
-		return false;
-	}
+    if (nullptr == pOnUpdatedValueFunc)
+    {
+        return false;
+    }
 
-	Logger::debug(SSTR << "Calling OnUpdatedValue function for interface at path '" << getPath() << "'");
-	return pOnUpdatedValueFunc(*this, pConnection, pUserData);
+    Logger::debug(SSTR << "Calling OnUpdatedValue function for interface at path '" << getPath() << "'");
+    return pOnUpdatedValueFunc(*this, pConnection, pUserData);
 }
 
 }; // namespace ggk

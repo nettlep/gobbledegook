@@ -122,10 +122,10 @@ static std::string serverDataTextString = "Hello, world!";
 
 enum LogLevel
 {
-	Debug,
-	Verbose,
-	Normal,
-	ErrorsOnly
+    Debug,
+    Verbose,
+    Normal,
+    ErrorsOnly
 };
 
 // Our log level - defaulted to 'Normal' but can be modified via command-line options
@@ -150,17 +150,17 @@ void LogTrace(const char *pText) { std::cout << "-Trace-: " << pText << std::end
 // We setup a couple Unix signals to perform graceful shutdown in the case of SIGTERM or get an SIGING (CTRL-C)
 void signalHandler(int signum)
 {
-	switch (signum)
-	{
-		case SIGINT:
-			LogStatus("SIGINT recieved, shutting down");
-			ggkTriggerShutdown();
-			break;
-		case SIGTERM:
-			LogStatus("SIGTERM recieved, shutting down");
-			ggkTriggerShutdown();
-			break;
-	}
+    switch (signum)
+    {
+        case SIGINT:
+            LogStatus("SIGINT recieved, shutting down");
+            ggkTriggerShutdown();
+            break;
+        case SIGTERM:
+            LogStatus("SIGTERM recieved, shutting down");
+            ggkTriggerShutdown();
+            break;
+    }
 }
 
 //
@@ -175,25 +175,25 @@ void signalHandler(int signum)
 // sending over stored values, so we don't need to take any additional steps to ensure thread-safety.
 const void *dataGetter(const char *pName)
 {
-	if (nullptr == pName)
-	{
-		LogError("NULL name sent to server data getter");
-		return nullptr;
-	}
+    if (nullptr == pName)
+    {
+        LogError("NULL name sent to server data getter");
+        return nullptr;
+    }
 
-	std::string strName = pName;
+    std::string strName = pName;
 
-	if (strName == "battery/level")
-	{
-		return &serverDataBatteryLevel;
-	}
-	else if (strName == "text/string")
-	{
-		return serverDataTextString.c_str();
-	}
+    if (strName == "battery/level")
+    {
+        return &serverDataBatteryLevel;
+    }
+    else if (strName == "text/string")
+    {
+        return serverDataTextString.c_str();
+    }
 
-	LogWarn((std::string("Unknown name for server data getter request: '") + pName + "'").c_str());
-	return nullptr;
+    LogWarn((std::string("Unknown name for server data getter request: '") + pName + "'").c_str());
+    return nullptr;
 }
 
 // Called by the server when it wants to update a named value
@@ -204,35 +204,35 @@ const void *dataGetter(const char *pName)
 // sending over stored values, so we don't need to take any additional steps to ensure thread-safety.
 int dataSetter(const char *pName, const void *pData)
 {
-	if (nullptr == pName)
-	{
-		LogError("NULL name sent to server data setter");
-		return 0;
-	}
-	if (nullptr == pData)
-	{
-		LogError("NULL pData sent to server data setter");
-		return 0;
-	}
+    if (nullptr == pName)
+    {
+        LogError("NULL name sent to server data setter");
+        return 0;
+    }
+    if (nullptr == pData)
+    {
+        LogError("NULL pData sent to server data setter");
+        return 0;
+    }
 
-	std::string strName = pName;
+    std::string strName = pName;
 
-	if (strName == "battery/level")
-	{
-		serverDataBatteryLevel = *static_cast<const uint8_t *>(pData);
-		LogDebug((std::string("Server data: battery level set to ") + std::to_string(serverDataBatteryLevel)).c_str());
-		return 1;
-	}
-	else if (strName == "text/string")
-	{
-		serverDataTextString = static_cast<const char *>(pData);
-		LogDebug((std::string("Server data: text string set to '") + serverDataTextString + "'").c_str());
-		return 1;
-	}
+    if (strName == "battery/level")
+    {
+        serverDataBatteryLevel = *static_cast<const uint8_t *>(pData);
+        LogDebug((std::string("Server data: battery level set to ") + std::to_string(serverDataBatteryLevel)).c_str());
+        return 1;
+    }
+    else if (strName == "text/string")
+    {
+        serverDataTextString = static_cast<const char *>(pData);
+        LogDebug((std::string("Server data: text string set to '") + serverDataTextString + "'").c_str());
+        return 1;
+    }
 
-	LogWarn((std::string("Unknown name for server data setter request: '") + pName + "'").c_str());
+    LogWarn((std::string("Unknown name for server data setter request: '") + pName + "'").c_str());
 
-	return 0;
+    return 0;
 }
 
 //
@@ -241,76 +241,76 @@ int dataSetter(const char *pName, const void *pData)
 
 int main(int argc, char **ppArgv)
 {
-	// A basic command-line parser
-	for (int i = 1; i < argc; ++i)
-	{
-		std::string arg = ppArgv[i];
-		if (arg == "-q")
-		{
-			logLevel = ErrorsOnly;
-		}
-		else if (arg == "-v")
-		{
-			logLevel = Verbose;
-		}
-		else if  (arg == "-d")
-		{
-			logLevel = Debug;
-		}
-		else
-		{
-			LogFatal((std::string("Unknown parameter: '") + arg + "'").c_str());
-			LogFatal("");
-			LogFatal("Usage: standalone [-q | -v | -d]");
-			return -1;
-		}
-	}
+    // A basic command-line parser
+    for (int i = 1; i < argc; ++i)
+    {
+        std::string arg = ppArgv[i];
+        if (arg == "-q")
+        {
+            logLevel = ErrorsOnly;
+        }
+        else if (arg == "-v")
+        {
+            logLevel = Verbose;
+        }
+        else if  (arg == "-d")
+        {
+            logLevel = Debug;
+        }
+        else
+        {
+            LogFatal((std::string("Unknown parameter: '") + arg + "'").c_str());
+            LogFatal("");
+            LogFatal("Usage: standalone [-q | -v | -d]");
+            return -1;
+        }
+    }
 
-	// Setup our signal handlers
-	signal(SIGINT, signalHandler);
-	signal(SIGTERM, signalHandler);
+    // Setup our signal handlers
+    signal(SIGINT, signalHandler);
+    signal(SIGTERM, signalHandler);
 
-	// Register our loggers
-	ggkLogRegisterDebug(LogDebug);
-	ggkLogRegisterInfo(LogInfo);
-	ggkLogRegisterStatus(LogStatus);
-	ggkLogRegisterWarn(LogWarn);
-	ggkLogRegisterError(LogError);
-	ggkLogRegisterFatal(LogFatal);
-	ggkLogRegisterAlways(LogAlways);
-	ggkLogRegisterTrace(LogTrace);
+    // Register our loggers
+    ggkLogRegisterDebug(LogDebug);
+    ggkLogRegisterInfo(LogInfo);
+    ggkLogRegisterStatus(LogStatus);
+    ggkLogRegisterWarn(LogWarn);
+    ggkLogRegisterError(LogError);
+    ggkLogRegisterFatal(LogFatal);
+    ggkLogRegisterAlways(LogAlways);
+    ggkLogRegisterTrace(LogTrace);
 
-	// Start the server's ascync processing
-	//
-	// This starts the server on a thread and begins the initialization process
-	//
-	// !!!IMPORTANT!!!
-	//
-	//     This first parameter (the service name) must match tha name configured in the D-Bus permissions. See the Readme.md file
-	//     for more information.
-	//
-	if (!ggkStart("gobbledegook", "Gobbledegook", "Gobbledegook", dataGetter, dataSetter, kMaxAsyncInitTimeoutMS))
-	{
-		return -1;
-	}
+    // Start the server's ascync processing
+    //
+    // This starts the server on a thread and begins the initialization process
+    //
+    // !!!IMPORTANT!!!
+    //
+    //     This first parameter (the service name) must match tha name configured in the D-Bus permissions. See the Readme.md file
+    //     for more information.
+    //
+    if (!ggkStart("gobbledegook", "Gobbledegook", "Gobbledegook", dataGetter, dataSetter, kMaxAsyncInitTimeoutMS))
+    {
+        return -1;
+    }
 
-	// Wait for the server to start the shutdown process
-	//
-	// While we wait, every 15 ticks, drop the battery level by one percent until we reach 0
-	while (ggkGetServerRunState() < EStopping)
-	{
-		std::this_thread::sleep_for(std::chrono::seconds(15));
+    // Wait for the server to start the shutdown process
+    //
+    // While we wait, every 15 ticks, drop the battery level by one percent until we reach 0
+    while (ggkGetServerRunState() < EStopping)
+    {
+        std::this_thread::sleep_for(std::chrono::seconds(15));
 
-		serverDataBatteryLevel = std::max(serverDataBatteryLevel - 1, 0);
-		ggkNofifyUpdatedCharacteristic("/com/gobbledegook/battery/level");
-	}
+        serverDataBatteryLevel = std::max(serverDataBatteryLevel - 1, 0);
+        ggkNofifyUpdatedCharacteristic("/com/gobbledegook/battery/level");
+    }
 
-	// Wait for the server to come to a complete stop (CTRL-C from the command line)
-	if (!ggkWait())
-	{
-		return -1;
-	}
+    // Wait for the server to come to a complete stop (CTRL-C from the command line)
+    if (!ggkWait())
+    {
+        return -1;
+    }
 
-	// Return the final server health status as a success (0) or error (-1)
-  	return ggkGetServerHealth() == EOk ? 0 : 1;
+    // Return the final server health status as a success (0) or error (-1)
+    return ggkGetServerHealth() == EOk ? 0 : 1;
 }

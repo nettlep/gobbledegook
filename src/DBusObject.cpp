@@ -71,7 +71,7 @@ DBusObject::DBusObject(DBusObject *pParent, const DBusObjectPath &pathElement)
 // Returns the `publish` flag
 bool DBusObject::isPublished() const
 {
-	return publish;
+    return publish;
 }
 
 // Returns the path node for this object within the hierarchy
@@ -79,7 +79,7 @@ bool DBusObject::isPublished() const
 // This method only returns the node. To get the full path, use `getPath()`
 const DBusObjectPath &DBusObject::getPathNode() const
 {
-	return path;
+    return path;
 }
 
 // Returns the full path for this object within the hierarchy
@@ -87,42 +87,42 @@ const DBusObjectPath &DBusObject::getPathNode() const
 // This method returns the full path. To get the current node, use `getPathNode()`
 DBusObjectPath DBusObject::getPath() const
 {
-	DBusObjectPath path = getPathNode();
-	const DBusObject *pCurrent = pParent;
+    DBusObjectPath path = getPathNode();
+    const DBusObject *pCurrent = pParent;
 
-	// Traverse up my chain, adding nodes to the path until we have the full thing
-	while(nullptr != pCurrent)
-	{
-		path = pCurrent->getPathNode() + path;
-		pCurrent = pCurrent->pParent;
-	}
+    // Traverse up my chain, adding nodes to the path until we have the full thing
+    while(nullptr != pCurrent)
+    {
+        path = pCurrent->getPathNode() + path;
+        pCurrent = pCurrent->pParent;
+    }
 
-	return path;
+    return path;
 }
 
 // Returns the parent object in the hierarchy
 DBusObject &DBusObject::getParent()
 {
-	return *pParent;
+    return *pParent;
 }
 
 // Returns the list of children objects
 const std::list<DBusObject> &DBusObject::getChildren() const
 {
-	return children;
+    return children;
 }
 
 // Add a child to this object
 DBusObject &DBusObject::addChild(const DBusObjectPath &pathElement)
 {
-	children.push_back(DBusObject(this, pathElement));
-	return children.back();
+    children.push_back(DBusObject(this, pathElement));
+    return children.back();
 }
 
 // Returns a list of interfaces for this object
 const DBusObject::InterfaceList &DBusObject::getInterfaces() const
 {
-	return interfaces;
+    return interfaces;
 }
 
 // Convenience functions to add a GATT service to the hierarchy
@@ -130,11 +130,11 @@ const DBusObject::InterfaceList &DBusObject::getInterfaces() const
 // We simply add a new child at the given path and add an interface configured as a GATT service to it using the given UUID.
 GattService &DBusObject::gattServiceBegin(const std::string &pathElement, const GattUuid &uuid)
 {
-	DBusObject &child = addChild(DBusObjectPath(pathElement));
-	GattService &service = *child.addInterface(std::make_shared<GattService>(child, "org.bluez.GattService1"));
-	service.addProperty<GattService>("UUID", uuid);
-	service.addProperty<GattService>("Primary", true);
-	return service;
+    DBusObject &child = addChild(DBusObjectPath(pathElement));
+    GattService &service = *child.addInterface(std::make_shared<GattService>(child, "org.bluez.GattService1"));
+    service.addProperty<GattService>("UUID", uuid);
+    service.addProperty<GattService>("Primary", true);
+    return service;
 }
 
 //
@@ -144,69 +144,69 @@ GattService &DBusObject::gattServiceBegin(const std::string &pathElement, const 
 // Finds an interface by name within this D-Bus object
 std::shared_ptr<const DBusInterface> DBusObject::findInterface(const DBusObjectPath &path, const std::string &interfaceName, const DBusObjectPath &basePath) const
 {
-	if ((basePath + getPathNode()) == path)
-	{
-		for (std::shared_ptr<const DBusInterface> interface : interfaces)
-		{
-			if (interfaceName == interface->getName())
-			{
-				return interface;
-			}
-		}
-	}
+    if ((basePath + getPathNode()) == path)
+    {
+        for (std::shared_ptr<const DBusInterface> interface : interfaces)
+        {
+            if (interfaceName == interface->getName())
+            {
+                return interface;
+            }
+        }
+    }
 
-	for (const DBusObject &child : getChildren())
-	{
-		std::shared_ptr<const DBusInterface> pInterface = child.findInterface(path, interfaceName, basePath + getPathNode());
-		if (nullptr != pInterface)
-		{
-			return pInterface;
-		}
-	}
+    for (const DBusObject &child : getChildren())
+    {
+        std::shared_ptr<const DBusInterface> pInterface = child.findInterface(path, interfaceName, basePath + getPathNode());
+        if (nullptr != pInterface)
+        {
+            return pInterface;
+        }
+    }
 
-	return nullptr;
+    return nullptr;
 }
 
 // Finds a BlueZ method by name within the specified D-Bus interface
 bool DBusObject::callMethod(const DBusObjectPath &path, const std::string &interfaceName, const std::string &methodName, GDBusConnection *pConnection, GVariant *pParameters, GDBusMethodInvocation *pInvocation, gpointer pUserData, const DBusObjectPath &basePath) const
 {
-	if ((basePath + getPathNode()) == path)
-	{
-		for (std::shared_ptr<const DBusInterface> interface : interfaces)
-		{
-			if (interfaceName == interface->getName())
-			{
-				if (interface->callMethod(methodName, pConnection, pParameters, pInvocation, pUserData))
-				{
-					return true;
-				}
-			}
-		}
-	}
+    if ((basePath + getPathNode()) == path)
+    {
+        for (std::shared_ptr<const DBusInterface> interface : interfaces)
+        {
+            if (interfaceName == interface->getName())
+            {
+                if (interface->callMethod(methodName, pConnection, pParameters, pInvocation, pUserData))
+                {
+                    return true;
+                }
+            }
+        }
+    }
 
-	for (const DBusObject &child : getChildren())
-	{
-		if (child.callMethod(path, interfaceName, methodName, pConnection, pParameters, pInvocation, pUserData, basePath + getPathNode()))
-		{
-			return true;
-		}
-	}
+    for (const DBusObject &child : getChildren())
+    {
+        if (child.callMethod(path, interfaceName, methodName, pConnection, pParameters, pInvocation, pUserData, basePath + getPathNode()))
+        {
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 }
 
 // Periodic timer tick propagation
 void DBusObject::tickEvents(GDBusConnection *pConnection, void *pUserData) const
 {
-	for (std::shared_ptr<const DBusInterface> interface : interfaces)
-	{
-		interface->tickEvents(pConnection, pUserData);
-	}
+    for (std::shared_ptr<const DBusInterface> interface : interfaces)
+    {
+        interface->tickEvents(pConnection, pUserData);
+    }
 
-	for (const DBusObject &child : getChildren())
-	{
-		child.tickEvents(pConnection, pUserData);
-	}
+    for (const DBusObject &child : getChildren())
+    {
+        child.tickEvents(pConnection, pUserData);
+    }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------
@@ -216,39 +216,39 @@ void DBusObject::tickEvents(GDBusConnection *pConnection, void *pUserData) const
 // Internal method used to generate introspection XML used to describe our services on D-Bus
 std::string DBusObject::generateIntrospectionXML(int depth) const
 {
-	std::string prefix;
-	prefix.insert(0, depth * 2, ' ');
+    std::string prefix;
+    prefix.insert(0, depth * 2, ' ');
 
-	std::string xml = std::string();
+    std::string xml = std::string();
 
-	if (depth == 0)
-	{
-		xml += "<?xml version='1.0'?>\n";
-		xml += "<!DOCTYPE node PUBLIC '-//freedesktop//DTD D-BUS Object Introspection 1.0//EN' 'http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd'>\n";
-	}
+    if (depth == 0)
+    {
+        xml += "<?xml version='1.0'?>\n";
+        xml += "<!DOCTYPE node PUBLIC '-//freedesktop//DTD D-BUS Object Introspection 1.0//EN' 'http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd'>\n";
+    }
 
-	xml += prefix + "<node name='" + getPathNode().toString() + "'>\n";
-	xml += prefix + "  <annotation name='" + TheServer->getServiceName() + ".DBusObject.path' value='" + getPath().toString() + "' />\n";
+    xml += prefix + "<node name='" + getPathNode().toString() + "'>\n";
+    xml += prefix + "  <annotation name='" + TheServer->getServiceName() + ".DBusObject.path' value='" + getPath().toString() + "' />\n";
 
-	for (std::shared_ptr<const DBusInterface> interface : interfaces)
-	{
-		xml += interface->generateIntrospectionXML(depth + 1);
-	}
+    for (std::shared_ptr<const DBusInterface> interface : interfaces)
+    {
+        xml += interface->generateIntrospectionXML(depth + 1);
+    }
 
-	for (DBusObject child : getChildren())
-	{
-		xml += child.generateIntrospectionXML(depth + 1);
-	}
+    for (DBusObject child : getChildren())
+    {
+        xml += child.generateIntrospectionXML(depth + 1);
+    }
 
-	xml += prefix + "</node>\n";
+    xml += prefix + "</node>\n";
 
-	if (depth == 0)
-	{
-		Logger::debug("Generated XML:");
-		Logger::debug(xml);
-	}
+    if (depth == 0)
+    {
+        Logger::debug("Generated XML:");
+        Logger::debug(xml);
+    }
 
-	return xml;
+    return xml;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------
@@ -258,22 +258,22 @@ std::string DBusObject::generateIntrospectionXML(int depth) const
 // Emits a signal on the bus from the given path, interface name and signal name, containing a GVariant set of parameters
 void DBusObject::emitSignal(GDBusConnection *pBusConnection, const std::string &interfaceName, const std::string &signalName, GVariant *pParameters)
 {
-	GError *pError = nullptr;
-	gboolean result = g_dbus_connection_emit_signal
-	(
-		pBusConnection,          // GDBusConnection *connection
-		NULL,                    // const gchar *destination_bus_name
-		getPath().c_str(),       // const gchar *object_path
-		interfaceName.c_str(),   // const gchar *interface_name
-		signalName.c_str(),      // const gchar *signal_name
-		pParameters,             // GVariant *parameters
-		&pError                  // GError **error
-	);
+    GError *pError = nullptr;
+    gboolean result = g_dbus_connection_emit_signal
+    (
+        pBusConnection,          // GDBusConnection *connection
+        NULL,                    // const gchar *destination_bus_name
+        getPath().c_str(),       // const gchar *object_path
+        interfaceName.c_str(),   // const gchar *interface_name
+        signalName.c_str(),      // const gchar *signal_name
+        pParameters,             // GVariant *parameters
+        &pError                  // GError **error
+    );
 
-	if (0 == result)
-	{
-		Logger::error(SSTR << "Failed to emit signal named '" << signalName << "': " << (nullptr == pError ? "Unknown" : pError->message));
-	}
+    if (0 == result)
+    {
+        Logger::error(SSTR << "Failed to emit signal named '" << signalName << "': " << (nullptr == pError ? "Unknown" : pError->message));
+    }
 }
 
 

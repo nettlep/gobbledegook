@@ -17,7 +17,7 @@
 // >>>  DISCUSSION
 // >>
 //
-// A GATT Service is really a collection of 
+// A GATT Service is really a collection of
 //
 // This class is intended to be used within the server description. For an explanation of how this class is used, see the detailed
 // description in Server.cpp.
@@ -47,7 +47,7 @@ GattService::GattService(DBusObject &owner, const std::string &name)
 // Returning the parent pops us one level up the hierarchy
 DBusObject &GattService::gattServiceEnd()
 {
-	return getOwner().getParent();
+    return getOwner().getParent();
 }
 
 // Convenience functions to add a GATT characteristic to the hierarchy
@@ -76,12 +76,12 @@ DBusObject &GattService::gattServiceEnd()
 //
 GattCharacteristic &GattService::gattCharacteristicBegin(const std::string &pathElement, const GattUuid &uuid, const std::vector<const char *> &flags)
 {
-	DBusObject &child = owner.addChild(DBusObjectPath(pathElement));
-	GattCharacteristic &characteristic = *child.addInterface(std::make_shared<GattCharacteristic>(child, *this, "org.bluez.GattCharacteristic1"));
-	characteristic.addProperty<GattCharacteristic>("UUID", uuid);
-	characteristic.addProperty<GattCharacteristic>("Service", owner.getPath());
-	characteristic.addProperty<GattCharacteristic>("Flags", flags);
-	return characteristic;
+    DBusObject &child = owner.addChild(DBusObjectPath(pathElement));
+    GattCharacteristic &characteristic = *child.addInterface(std::make_shared<GattCharacteristic>(child, *this, "org.bluez.GattCharacteristic1"));
+    characteristic.addProperty<GattCharacteristic>("UUID", uuid);
+    characteristic.addProperty<GattCharacteristic>("Service", owner.getPath());
+    characteristic.addProperty<GattCharacteristic>("Flags", flags);
+    return characteristic;
 }
 
 }; // namespace ggk

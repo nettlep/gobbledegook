@@ -56,88 +56,88 @@ struct DBusInterface;
 
 struct TickEvent
 {
-	//
-	// Types
-	//
+    //
+    // Types
+    //
 
-	// A tick event callback, which is called whenever the TickEvent fires
-	typedef void (*Callback)(const DBusInterface &self, const TickEvent &event, GDBusConnection *pConnection, void *pUserData);
+    // A tick event callback, which is called whenever the TickEvent fires
+    typedef void (*Callback)(const DBusInterface &self, const TickEvent &event, GDBusConnection *pConnection, void *pUserData);
 
-	// Construct a TickEvent that will fire after a specified 'tickFrequency' number of ticks of the periodic timer.
-	//
-	// Note that the actual time between a callback's execution is the event's 'tickFrequency' multiplied by the time between each
-	// periodic timer tick.
-	TickEvent(const DBusInterface *pOwner, int tickFrequency, Callback callback, void *pUserData)
-	: pOwner(pOwner), elapsedTicks(0), tickFrequency(tickFrequency), callback(callback), pUserData(pUserData)
-	{
-	}
+    // Construct a TickEvent that will fire after a specified 'tickFrequency' number of ticks of the periodic timer.
+    //
+    // Note that the actual time between a callback's execution is the event's 'tickFrequency' multiplied by the time between each
+    // periodic timer tick.
+    TickEvent(const DBusInterface *pOwner, int tickFrequency, Callback callback, void *pUserData)
+    : pOwner(pOwner), elapsedTicks(0), tickFrequency(tickFrequency), callback(callback), pUserData(pUserData)
+    {
+    }
 
-	//
-	// Accessors
-	//
+    //
+    // Accessors
+    //
 
-	// Returns the elapsed ticks since the last event firing
-	int getElapsedTicks() const { return elapsedTicks; }
+    // Returns the elapsed ticks since the last event firing
+    int getElapsedTicks() const { return elapsedTicks; }
 
-	// Sets the elapsed ticks since the last event firing
-	void setElapsedTicks(int elapsed) { elapsedTicks = elapsed; }
+    // Sets the elapsed ticks since the last event firing
+    void setElapsedTicks(int elapsed) { elapsedTicks = elapsed; }
 
-	// Returns the tick frequency between schedule tick events
-	int getTickFrequency() const { return tickFrequency; }
+    // Returns the tick frequency between schedule tick events
+    int getTickFrequency() const { return tickFrequency; }
 
-	// Sets the tick frequency between schedule tick events
-	void setTickFrequency(int frequency) { tickFrequency = frequency; }
+    // Sets the tick frequency between schedule tick events
+    void setTickFrequency(int frequency) { tickFrequency = frequency; }
 
-	// Returns the user data pointer associated to this TickEvent
-	void *getUserData() { return pUserData; }
+    // Returns the user data pointer associated to this TickEvent
+    void *getUserData() { return pUserData; }
 
-	// Sets the user data pointer associated to this TickEvent
-	void setUserData(void *pUserData) { this->pUserData = pUserData; }
+    // Sets the user data pointer associated to this TickEvent
+    void setUserData(void *pUserData) { this->pUserData = pUserData; }
 
-	// Gets the callback for the TickEvent
-	Callback getCallback() const { return callback; }
+    // Gets the callback for the TickEvent
+    Callback getCallback() const { return callback; }
 
-	// Sets the callback for the TickEvent
-	void setCallback(Callback callback) { this->callback = callback; }
+    // Sets the callback for the TickEvent
+    void setCallback(Callback callback) { this->callback = callback; }
 
-	//
-	// Tick management
-	//
+    //
+    // Tick management
+    //
 
-	// Perform a single tick of a TickEvent
-	//
-	// A TickEvent is ticked each time the periodic timer fires. The TickEvent only fires after `tickFrequency` ticks. As a result,
-	// the `callback` is only called after a period of time equal to the time between firings of the periodic timer, multiplied by
-	// `tickFrequency`.
-	//
-	// Returns true if event fires, false otherwise
-	template<typename T>
-	void tick(const DBusObjectPath &path, GDBusConnection *pConnection, void *pUserData) const
-	{
-		elapsedTicks += 1;
-		if (elapsedTicks >= tickFrequency)
-		{
-			if (nullptr != callback)
-			{
-				Logger::debug(SSTR << "Ticking at path '" << path << "'");
-				callback(*static_cast<const T *>(pOwner), *this, pConnection, pUserData);
-			}
+    // Perform a single tick of a TickEvent
+    //
+    // A TickEvent is ticked each time the periodic timer fires. The TickEvent only fires after `tickFrequency` ticks. As a result,
+    // the `callback` is only called after a period of time equal to the time between firings of the periodic timer, multiplied by
+    // `tickFrequency`.
+    //
+    // Returns true if event fires, false otherwise
+    template<typename T>
+    void tick(const DBusObjectPath &path, GDBusConnection *pConnection, void *pUserData) const
+    {
+        elapsedTicks += 1;
+        if (elapsedTicks >= tickFrequency)
+        {
+            if (nullptr != callback)
+            {
+                Logger::debug(SSTR << "Ticking at path '" << path << "'");
+                callback(*static_cast<const T *>(pOwner), *this, pConnection, pUserData);
+            }
 
-			elapsedTicks = 0;
-		}
-	}
+            elapsedTicks = 0;
+        }
+    }
 
 private:
 
-	//
-	// Data members
-	//
+    //
+    // Data members
+    //
 
-	const DBusInterface *pOwner;
-	mutable int elapsedTicks;
-	int tickFrequency;
-	Callback callback;
-	void *pUserData;
+    const DBusInterface *pOwner;
+    mutable int elapsedTicks;
+    int tickFrequency;
+    Callback callback;
+    void *pUserData;
 };
 
 }; // namespace ggk

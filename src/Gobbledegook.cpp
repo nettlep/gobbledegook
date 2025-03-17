@@ -47,41 +47,41 @@
 
 namespace ggk
 {
-	// During initialization, we'll check for complation at this interval
-	static const int kMaxAsyncInitCheckIntervalMS = 10;
+    // During initialization, we'll check for complation at this interval
+    static const int kMaxAsyncInitCheckIntervalMS = 10;
 
-	// Our server thread
-	static std::thread serverThread;
+    // Our server thread
+    static std::thread serverThread;
 
-	// The current server state
-	volatile static GGKServerRunState serverRunState = EUninitialized;
+    // The current server state
+    volatile static GGKServerRunState serverRunState = EUninitialized;
 
-	// The current server health
-	volatile static GGKServerHealth serverHealth = EOk;
+    // The current server health
+    volatile static GGKServerHealth serverHealth = EOk;
 
-	// We store the old GLib print handler and error print handler so we can restore if
-	static GPrintFunc printHandlerGLib;
-	static GPrintFunc printerrHandlerGLib;
-	static GLogFunc logHandlerGLib;
+    // We store the old GLib print handler and error print handler so we can restore if
+    static GPrintFunc printHandlerGLib;
+    static GPrintFunc printerrHandlerGLib;
+    static GLogFunc logHandlerGLib;
 
-	// Our update queue
-	typedef std::tuple<std::string, std::string> QueueEntry;
-	std::deque<QueueEntry> updateQueue;
-	std::mutex updateQueueMutex;
+    // Our update queue
+    typedef std::tuple<std::string, std::string> QueueEntry;
+    std::deque<QueueEntry> updateQueue;
+    std::mutex updateQueueMutex;
 
-	// Internal method to set the run state of the server
-	void setServerRunState(GGKServerRunState newState)
-	{
-		Logger::status(SSTR << "** SERVER RUN STATE CHANGED: " << ggkGetServerRunStateString(serverRunState) << " -> " << ggkGetServerRunStateString(newState));
-		serverRunState = newState;
-	}
+    // Internal method to set the run state of the server
+    void setServerRunState(GGKServerRunState newState)
+    {
+        Logger::status(SSTR << "** SERVER RUN STATE CHANGED: " << ggkGetServerRunStateString(serverRunState) << " -> " << ggkGetServerRunStateString(newState));
+        serverRunState = newState;
+    }
 
-	// Internal method to set the health of the server
-	void setServerHealth(GGKServerHealth newHealth)
-	{
-		Logger::status(SSTR << "** SERVER HEALTH CHANGED: " << ggkGetServerHealthString(serverHealth) << " -> " << ggkGetServerHealthString(newHealth));
-		serverHealth = newHealth;
-	}
+    // Internal method to set the health of the server
+    void setServerHealth(GGKServerHealth newHealth)
+    {
+        Logger::status(SSTR << "** SERVER HEALTH CHANGED: " << ggkGetServerHealthString(serverHealth) << " -> " << ggkGetServerHealthString(newHealth));
+        serverHealth = newHealth;
+    }
 }; // namespace ggk
 
 using namespace ggk;
@@ -122,7 +122,7 @@ void ggkLogRegisterAlways(GGKLogReceiver receiver) { Logger::registerAlwaysRecei
 // Returns non-zero value on success or 0 on failure.
 int ggkNofifyUpdatedCharacteristic(const char *pObjectPath)
 {
-	return ggkPushUpdateQueue(pObjectPath, "org.bluez.GattCharacteristic1") != 0;
+    return ggkPushUpdateQueue(pObjectPath, "org.bluez.GattCharacteristic1") != 0;
 }
 
 // Adds an update to the front of the queue for a descriptor at the given object path
@@ -130,7 +130,7 @@ int ggkNofifyUpdatedCharacteristic(const char *pObjectPath)
 // Returns non-zero value on success or 0 on failure.
 int ggkNofifyUpdatedDescriptor(const char *pObjectPath)
 {
-	return ggkPushUpdateQueue(pObjectPath, "org.bluez.GattDescriptor1") != 0;
+    return ggkPushUpdateQueue(pObjectPath, "org.bluez.GattDescriptor1") != 0;
 }
 
 // Adds a named update to the front of the queue. Generally, this routine should not be used directly. Instead, use the
@@ -139,11 +139,11 @@ int ggkNofifyUpdatedDescriptor(const char *pObjectPath)
 // Returns non-zero value on success or 0 on failure.
 int ggkPushUpdateQueue(const char *pObjectPath, const char *pInterfaceName)
 {
-	QueueEntry t(pObjectPath, pInterfaceName);
+    QueueEntry t(pObjectPath, pInterfaceName);
 
-	std::lock_guard<std::mutex> guard(updateQueueMutex);
-	updateQueue.push_front(t);
-	return 1;
+    std::lock_guard<std::mutex> guard(updateQueueMutex);
+    updateQueue.push_front(t);
+    return 1;
 }
 
 // Get the next update from the back of the queue and returns the element in `element` as a string in the format:
@@ -161,54 +161,54 @@ int ggkPushUpdateQueue(const char *pObjectPath, const char *pInterfaceName)
 // Returns 1 on success, 0 if the queue is empty, -1 on error (such as the length too small to store the element)
 int ggkPopUpdateQueue(char *pElementBuffer, int elementLen, int keep)
 {
-	std::string result;
+    std::string result;
 
-	{
-		std::lock_guard<std::mutex> guard(updateQueueMutex);
+    {
+        std::lock_guard<std::mutex> guard(updateQueueMutex);
 
-		// Check for an empty queue
-		if (updateQueue.empty()) { return 0; }
+        // Check for an empty queue
+        if (updateQueue.empty()) { return 0; }
 
-		// Get the last element
-		QueueEntry t = updateQueue.back();
+        // Get the last element
+        QueueEntry t = updateQueue.back();
 
-		// Get the result string
-		result = std::get<0>(t) + "|" + std::get<1>(t);
+        // Get the result string
+        result = std::get<0>(t) + "|" + std::get<1>(t);
 
-		// Ensure there's enough room for it
-		if (result.length() + 1 > static_cast<size_t>(elementLen)) { return -1; }
+        // Ensure there's enough room for it
+        if (result.length() + 1 > static_cast<size_t>(elementLen)) { return -1; }
 
-		if (keep == 0)
-		{
-			updateQueue.pop_back();
-		}
-	}
+        if (keep == 0)
+        {
+            updateQueue.pop_back();
+        }
+    }
 
-	// Copy the element string
-	memcpy(pElementBuffer, result.c_str(), result.length() + 1);
+    // Copy the element string
+    memcpy(pElementBuffer, result.c_str(), result.length() + 1);
 
-	return 1;
+    return 1;
 }
 
 // Returns 1 if the queue is empty, otherwise 0
 int ggkUpdateQueueIsEmpty()
 {
-	std::lock_guard<std::mutex> guard(updateQueueMutex);
-	return updateQueue.empty() ? 1 : 0;
+    std::lock_guard<std::mutex> guard(updateQueueMutex);
+    return updateQueue.empty() ? 1 : 0;
 }
 
 // Returns the number of entries waiting in the queue
 int ggkUpdateQueueSize()
 {
-	std::lock_guard<std::mutex> guard(updateQueueMutex);
-	return updateQueue.size();
+    std::lock_guard<std::mutex> guard(updateQueueMutex);
+    return updateQueue.size();
 }
 
 // Removes all entries from the queue
 void ggkUpdateQueueClear()
 {
-	std::lock_guard<std::mutex> guard(updateQueueMutex);
-	updateQueue.clear();
+    std::lock_guard<std::mutex> guard(updateQueueMutex);
+    updateQueue.clear();
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------
@@ -226,27 +226,27 @@ void ggkUpdateQueueClear()
 // See `GGKServerRunState` (enumeration) for more information.
 GGKServerRunState ggkGetServerRunState()
 {
-	return serverRunState;
+    return serverRunState;
 }
 
 // Convert a `GGKServerRunState` into a human-readable string
 const char *ggkGetServerRunStateString(GGKServerRunState state)
 {
-	switch(state)
-	{
-		case EUninitialized: return "Uninitialized";
-		case EInitializing: return "Initializing";
-		case ERunning: return "Running";
-		case EStopping: return "Stopping";
-		case EStopped: return "Stopped";
-		default: return "Unknown";
-	}
+    switch(state)
+    {
+        case EUninitialized: return "Uninitialized";
+        case EInitializing: return "Initializing";
+        case ERunning: return "Running";
+        case EStopping: return "Stopping";
+        case EStopped: return "Stopped";
+        default: return "Unknown";
+    }
 }
 
 // Convenience method to check ServerRunState for a running server
 int ggkIsServerRunning()
 {
-	return serverRunState <= ERunning ? 1 : 0;
+    return serverRunState <= ERunning ? 1 : 0;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------
@@ -264,19 +264,19 @@ int ggkIsServerRunning()
 // See `GGKServerHealth` (enumeration) for more information.
 GGKServerHealth ggkGetServerHealth()
 {
-	return serverHealth;
+    return serverHealth;
 }
 
 // Convert a `GGKServerHealth` into a human-readable string
 const char *ggkGetServerHealthString(GGKServerHealth state)
 {
-	switch(state)
-	{
-		case EOk: return "Ok";
-		case EFailedInit: return "Failed initialization";
-		case EFailedRun: return "Failed run";
-		default: return "Unknown";
-	}
+    switch(state)
+    {
+        case EOk: return "Ok";
+        case EFailedInit: return "Failed initialization";
+        case EFailedRun: return "Failed run";
+        default: return "Unknown";
+    }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------
@@ -300,21 +300,21 @@ const char *ggkGetServerHealthString(GGKServerHealth state)
 // Alternatively, you can use `ggkShutdownAndWait()` to request the shutdown and block until the shutdown is complete.
 void ggkTriggerShutdown()
 {
-	shutdown();
+    shutdown();
 }
 
 // Convenience method to trigger a shutdown (via `ggkTriggerShutdown()`) and also waits for shutdown to complete (via
 // `ggkWait()`)
 int ggkShutdownAndWait()
 {
-	if (ggkIsServerRunning() != 0)
-	{
-		// Tell the server to shut down
-		ggkTriggerShutdown();
-	}
+    if (ggkIsServerRunning() != 0)
+    {
+        // Tell the server to shut down
+        ggkTriggerShutdown();
+    }
 
-	// Block until it has shut down completely
-	return ggkWait();
+    // Block until it has shut down completely
+    return ggkWait();
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------
@@ -335,47 +335,47 @@ int ggkShutdownAndWait()
 // Typically, a call to this method would follow `ggkTriggerShutdown()`.
 int ggkWait()
 {
-	int result = 0;
-	try
-	{
-		if (ggkGetServerRunState() <= ERunning)
-		{
-			Logger::info("Waiting for GGK server to stop");
-		}
+    int result = 0;
+    try
+    {
+        if (ggkGetServerRunState() <= ERunning)
+        {
+            Logger::info("Waiting for GGK server to stop");
+        }
 
-		if (serverThread.joinable())
-		{
-			serverThread.join();
-		}
+        if (serverThread.joinable())
+        {
+            serverThread.join();
+        }
 
-		result = 1;
-	}
-	catch(std::system_error &ex)
-	{
-		if (ex.code() == std::errc::invalid_argument)
-		{
-			Logger::warn(SSTR << "Server thread was not joinable during ggkWait(): " << ex.what());
-		}
-		else if (ex.code() == std::errc::no_such_process)
-		{
-			Logger::warn(SSTR << "Server thread was not valid during ggkWait(): " << ex.what());
-		}
-		else if (ex.code() == std::errc::resource_deadlock_would_occur)
-		{
-			Logger::warn(SSTR << "Deadlock avoided in call to ggkWait() (did the server thread try to stop itself?): " << ex.what());
-		}
-		else
-		{
-			Logger::warn(SSTR << "Unknown system_error code (" << ex.code() << ") during ggkWait(): " << ex.what());
-		}
-	}
+        result = 1;
+    }
+    catch(std::system_error &ex)
+    {
+        if (ex.code() == std::errc::invalid_argument)
+        {
+            Logger::warn(SSTR << "Server thread was not joinable during ggkWait(): " << ex.what());
+        }
+        else if (ex.code() == std::errc::no_such_process)
+        {
+            Logger::warn(SSTR << "Server thread was not valid during ggkWait(): " << ex.what());
+        }
+        else if (ex.code() == std::errc::resource_deadlock_would_occur)
+        {
+            Logger::warn(SSTR << "Deadlock avoided in call to ggkWait() (did the server thread try to stop itself?): " << ex.what());
+        }
+        else
+        {
+            Logger::warn(SSTR << "Unknown system_error code (" << ex.code() << ") during ggkWait(): " << ex.what());
+        }
+    }
 
-	// Restore the GLib output functions
-	g_set_print_handler(printHandlerGLib);
-	g_set_printerr_handler(printerrHandlerGLib);
-	g_log_set_default_handler(logHandlerGLib, nullptr);
+    // Restore the GLib output functions
+    g_set_print_handler(printHandlerGLib);
+    g_set_printerr_handler(printerrHandlerGLib);
+    g_log_set_default_handler(logHandlerGLib, nullptr);
 
-	return result;
+    return result;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------
@@ -438,103 +438,103 @@ int ggkWait()
 //
 //     Retrieve this value using the `getAdvertisingShortName()` method
 //
-int ggkStart(const char *pServiceName, const char *pAdvertisingName, const char *pAdvertisingShortName, 
-	GGKServerDataGetter getter, GGKServerDataSetter setter, int maxAsyncInitTimeoutMS)
+int ggkStart(const char *pServiceName, const char *pAdvertisingName, const char *pAdvertisingShortName,
+    GGKServerDataGetter getter, GGKServerDataSetter setter, int maxAsyncInitTimeoutMS)
 {
-	try
-	{
-		//
-		// Start by capturing the GLib output
-		//
+    try
+    {
+        //
+        // Start by capturing the GLib output
+        //
 
-		// Redirect GLib output to this log method
-		printHandlerGLib = g_set_print_handler([](const gchar *string)
-		{
-			Logger::info(string);
-		});
-		printerrHandlerGLib = g_set_printerr_handler([](const gchar *string)
-		{
-			Logger::error(string);
-		});
-		logHandlerGLib = g_log_set_default_handler([](const gchar *log_domain, GLogLevelFlags log_levels, const gchar *message, gpointer /*user_data*/)
-		{
-			std::string str = std::string(log_domain) + ": " + message;
-			if ((log_levels & (G_LOG_FLAG_RECURSION|G_LOG_FLAG_FATAL)) != 0)
-			{
-				Logger::fatal(str);
-			}
-			else if ((log_levels & (G_LOG_LEVEL_CRITICAL|G_LOG_LEVEL_ERROR)) != 0)
-			{
-				Logger::error(str);
-			}
-			else if ((log_levels & G_LOG_LEVEL_WARNING) != 0)
-			{
-				Logger::warn(str);
-			}
-			else if ((log_levels & G_LOG_LEVEL_DEBUG) != 0)
-			{
-				Logger::debug(str);
-			}
-			else
-			{
-				Logger::info(str);
-			}
-		}, nullptr);
+        // Redirect GLib output to this log method
+        printHandlerGLib = g_set_print_handler([](const gchar *string)
+        {
+            Logger::info(string);
+        });
+        printerrHandlerGLib = g_set_printerr_handler([](const gchar *string)
+        {
+            Logger::error(string);
+        });
+        logHandlerGLib = g_log_set_default_handler([](const gchar *log_domain, GLogLevelFlags log_levels, const gchar *message, gpointer /*user_data*/)
+        {
+            std::string str = std::string(log_domain) + ": " + message;
+            if ((log_levels & (G_LOG_FLAG_RECURSION|G_LOG_FLAG_FATAL)) != 0)
+            {
+                Logger::fatal(str);
+            }
+            else if ((log_levels & (G_LOG_LEVEL_CRITICAL|G_LOG_LEVEL_ERROR)) != 0)
+            {
+                Logger::error(str);
+            }
+            else if ((log_levels & G_LOG_LEVEL_WARNING) != 0)
+            {
+                Logger::warn(str);
+            }
+            else if ((log_levels & G_LOG_LEVEL_DEBUG) != 0)
+            {
+                Logger::debug(str);
+            }
+            else
+            {
+                Logger::info(str);
+            }
+        }, nullptr);
 
-		Logger::info(SSTR << "Starting GGK server '" << pAdvertisingName << "'");
+        Logger::info(SSTR << "Starting GGK server '" << pAdvertisingName << "'");
 
-		// Allocate our server
-		TheServer = std::make_shared<Server>(pServiceName, pAdvertisingName, pAdvertisingShortName, getter, setter);
+        // Allocate our server
+        TheServer = std::make_shared<Server>(pServiceName, pAdvertisingName, pAdvertisingShortName, getter, setter);
 
-		// Start our server thread
-		try
-		{
-			serverThread = std::thread(runServerThread);
-		}
-		catch(std::system_error &ex)
-		{
-			Logger::error(SSTR << "Server thread was unable to start (code " << ex.code() << ") during ggkStart(): " << ex.what());
+        // Start our server thread
+        try
+        {
+            serverThread = std::thread(runServerThread);
+        }
+        catch(std::system_error &ex)
+        {
+            Logger::error(SSTR << "Server thread was unable to start (code " << ex.code() << ") during ggkStart(): " << ex.what());
 
-			setServerRunState(EStopped);
-			return 0;
-		}
+            setServerRunState(EStopped);
+            return 0;
+        }
 
-		// Waits for the server to pass the EInitializing state
-		int retryTimeMS = 0;
-		while (retryTimeMS < maxAsyncInitTimeoutMS && ggkGetServerRunState() <= EInitializing)
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(kMaxAsyncInitCheckIntervalMS));
-			retryTimeMS += kMaxAsyncInitCheckIntervalMS;
-		}
+        // Waits for the server to pass the EInitializing state
+        int retryTimeMS = 0;
+        while (retryTimeMS < maxAsyncInitTimeoutMS && ggkGetServerRunState() <= EInitializing)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(kMaxAsyncInitCheckIntervalMS));
+            retryTimeMS += kMaxAsyncInitCheckIntervalMS;
+        }
 
-		// If something went wrong, shut down
-		if (retryTimeMS >= maxAsyncInitTimeoutMS)
-		{
-			Logger::error("GGK server initialization timed out");
+        // If something went wrong, shut down
+        if (retryTimeMS >= maxAsyncInitTimeoutMS)
+        {
+            Logger::error("GGK server initialization timed out");
 
-			setServerHealth(EFailedInit);
+            setServerHealth(EFailedInit);
 
-			shutdown();
-		}
+            shutdown();
+        }
 
-		// If something went wrong, shut down if we've not already done so
-		if (ggkGetServerRunState() != ERunning)
-		{
-			if (!ggkWait())
-			{
-				Logger::warn(SSTR << "Unable to stop the server after an error in ggkStart()");
-			}
+        // If something went wrong, shut down if we've not already done so
+        if (ggkGetServerRunState() != ERunning)
+        {
+            if (!ggkWait())
+            {
+                Logger::warn(SSTR << "Unable to stop the server after an error in ggkStart()");
+            }
 
-			return 0;
-		}
+            return 0;
+        }
 
-		// Everything looks good
-		Logger::trace("GGK server has started");
-		return 1;
-	}
-	catch(...)
-	{
-		Logger::error(SSTR << "Unknown exception during ggkStart()");
-		return 0;
-	}
+        // Everything looks good
+        Logger::trace("GGK server has started");
+        return 1;
+    }
+    catch(...)
+    {
+        Logger::error(SSTR << "Unknown exception during ggkStart()");
+        return 0;
+    }
 }

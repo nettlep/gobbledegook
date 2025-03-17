@@ -38,7 +38,7 @@ namespace ggk {
 Mgmt::Mgmt(uint16_t controllerIndex)
 : controllerIndex(controllerIndex)
 {
-	HciAdapter::getInstance().sync(controllerIndex);
+    HciAdapter::getInstance().sync(controllerIndex);
 }
 
 // Set the adapter name and short name
@@ -50,34 +50,34 @@ Mgmt::Mgmt(uint16_t controllerIndex)
 // Returns true on success, otherwise false
 bool Mgmt::setName(std::string name, std::string shortName)
 {
-	// Ensure their lengths are okay
-	name = truncateName(name);
-	shortName = truncateShortName(shortName);
+    // Ensure their lengths are okay
+    name = truncateName(name);
+    shortName = truncateShortName(shortName);
 
-	struct SRequest : HciAdapter::HciHeader
-	{
-		char name[249];
-		char shortName[11];
-	} __attribute__((packed));
+    struct SRequest : HciAdapter::HciHeader
+    {
+        char name[249];
+        char shortName[11];
+    } __attribute__((packed));
 
-	SRequest request;
-	request.code = Mgmt::ESetLocalNameCommand;
-	request.controllerId = controllerIndex;
-	request.dataSize = sizeof(SRequest) - sizeof(HciAdapter::HciHeader);
+    SRequest request;
+    request.code = Mgmt::ESetLocalNameCommand;
+    request.controllerId = controllerIndex;
+    request.dataSize = sizeof(SRequest) - sizeof(HciAdapter::HciHeader);
 
-	memset(request.name, 0, sizeof(request.name));
-	snprintf(request.name, sizeof(request.name), "%s", name.c_str());
+    memset(request.name, 0, sizeof(request.name));
+    snprintf(request.name, sizeof(request.name), "%s", name.c_str());
 
-	memset(request.shortName, 0, sizeof(request.shortName));
-	snprintf(request.shortName, sizeof(request.shortName), "%s", shortName.c_str());
+    memset(request.shortName, 0, sizeof(request.shortName));
+    snprintf(request.shortName, sizeof(request.shortName), "%s", shortName.c_str());
 
-	if (!HciAdapter::getInstance().sendCommand(request))
-	{
-		Logger::warn(SSTR << "  + Failed to set name");
-		return false;
-	}
+    if (!HciAdapter::getInstance().sendCommand(request))
+    {
+        Logger::warn(SSTR << "  + Failed to set name");
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 // Sets discoverable mode
@@ -87,26 +87,26 @@ bool Mgmt::setName(std::string name, std::string shortName)
 // Timeout is the time in seconds. For 0x02, the timeout value is required.
 bool Mgmt::setDiscoverable(uint8_t disc, uint16_t timeout)
 {
-	struct SRequest : HciAdapter::HciHeader
-	{
-		uint8_t disc;
-		uint16_t timeout;
-	} __attribute__((packed));
+    struct SRequest : HciAdapter::HciHeader
+    {
+        uint8_t disc;
+        uint16_t timeout;
+    } __attribute__((packed));
 
-	SRequest request;
-	request.code = Mgmt::ESetDiscoverableCommand;
-	request.controllerId = controllerIndex;
-	request.dataSize = sizeof(SRequest) - sizeof(HciAdapter::HciHeader);
-	request.disc = disc;
-	request.timeout = timeout;
+    SRequest request;
+    request.code = Mgmt::ESetDiscoverableCommand;
+    request.controllerId = controllerIndex;
+    request.dataSize = sizeof(SRequest) - sizeof(HciAdapter::HciHeader);
+    request.disc = disc;
+    request.timeout = timeout;
 
-	if (!HciAdapter::getInstance().sendCommand(request))
-	{
-		Logger::warn(SSTR << "  + Failed to set discoverable");
-		return false;
-	}
+    if (!HciAdapter::getInstance().sendCommand(request))
+    {
+        Logger::warn(SSTR << "  + Failed to set discoverable");
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 // Set a setting state to 'newState'
@@ -116,24 +116,24 @@ bool Mgmt::setDiscoverable(uint8_t disc, uint16_t timeout)
 // Returns true on success, otherwise false
 bool Mgmt::setState(uint16_t commandCode, uint16_t controllerId, uint8_t newState)
 {
-	struct SRequest : HciAdapter::HciHeader
-	{
-		uint8_t state;
-	} __attribute__((packed));
+    struct SRequest : HciAdapter::HciHeader
+    {
+        uint8_t state;
+    } __attribute__((packed));
 
-	SRequest request;
-	request.code = commandCode;
-	request.controllerId = controllerId;
-	request.dataSize = sizeof(SRequest) - sizeof(HciAdapter::HciHeader);
-	request.state = newState;
+    SRequest request;
+    request.code = commandCode;
+    request.controllerId = controllerId;
+    request.dataSize = sizeof(SRequest) - sizeof(HciAdapter::HciHeader);
+    request.state = newState;
 
-	if (!HciAdapter::getInstance().sendCommand(request))
-	{
-		Logger::warn(SSTR << "  + Failed to set " << HciAdapter::kCommandCodeNames[commandCode] << " state to: " << static_cast<int>(newState));
-		return false;
-	}
+    if (!HciAdapter::getInstance().sendCommand(request))
+    {
+        Logger::warn(SSTR << "  + Failed to set " << HciAdapter::kCommandCodeNames[commandCode] << " state to: " << static_cast<int>(newState));
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 // Set the powered state to `newState` (true = powered on, false = powered off)
@@ -141,7 +141,7 @@ bool Mgmt::setState(uint16_t commandCode, uint16_t controllerId, uint8_t newStat
 // Returns true on success, otherwise false
 bool Mgmt::setPowered(bool newState)
 {
-	return setState(Mgmt::ESetPoweredCommand, controllerIndex, newState ? 1 : 0);
+    return setState(Mgmt::ESetPoweredCommand, controllerIndex, newState ? 1 : 0);
 }
 
 // Set the BR/EDR state to `newState` (true = enabled, false = disabled)
@@ -149,7 +149,7 @@ bool Mgmt::setPowered(bool newState)
 // Returns true on success, otherwise false
 bool Mgmt::setBredr(bool newState)
 {
-	return setState(Mgmt::ESetBREDRCommand, controllerIndex, newState ? 1 : 0);
+    return setState(Mgmt::ESetBREDRCommand, controllerIndex, newState ? 1 : 0);
 }
 
 // Set the Secure Connection state (0 = disabled, 1 = enabled, 2 = secure connections only mode)
@@ -157,7 +157,7 @@ bool Mgmt::setBredr(bool newState)
 // Returns true on success, otherwise false
 bool Mgmt::setSecureConnections(uint8_t newState)
 {
-	return setState(Mgmt::ESetSecureConnectionsCommand, controllerIndex, newState);
+    return setState(Mgmt::ESetSecureConnectionsCommand, controllerIndex, newState);
 }
 
 // Set the bondable state to `newState` (true = enabled, false = disabled)
@@ -165,7 +165,7 @@ bool Mgmt::setSecureConnections(uint8_t newState)
 // Returns true on success, otherwise false
 bool Mgmt::setBondable(bool newState)
 {
-	return setState(Mgmt::ESetBondableCommand, controllerIndex, newState ? 1 : 0);
+    return setState(Mgmt::ESetBondableCommand, controllerIndex, newState ? 1 : 0);
 }
 
 // Set the connectable state to `newState` (true = enabled, false = disabled)
@@ -173,7 +173,7 @@ bool Mgmt::setBondable(bool newState)
 // Returns true on success, otherwise false
 bool Mgmt::setConnectable(bool newState)
 {
-	return setState(Mgmt::ESetConnectableCommand, controllerIndex, newState ? 1 : 0);
+    return setState(Mgmt::ESetConnectableCommand, controllerIndex, newState ? 1 : 0);
 }
 
 // Set the LE state to `newState` (true = enabled, false = disabled)
@@ -181,7 +181,7 @@ bool Mgmt::setConnectable(bool newState)
 // Returns true on success, otherwise false
 bool Mgmt::setLE(bool newState)
 {
-	return setState(Mgmt::ESetLowEnergyCommand, controllerIndex, newState ? 1 : 0);
+    return setState(Mgmt::ESetLowEnergyCommand, controllerIndex, newState ? 1 : 0);
 }
 
 // Set the advertising state to `newState` (0 = disabled, 1 = enabled (with consideration towards the connectable setting),
@@ -190,7 +190,7 @@ bool Mgmt::setLE(bool newState)
 // Returns true on success, otherwise false
 bool Mgmt::setAdvertising(uint8_t newState)
 {
-	return setState(Mgmt::ESetAdvertisingCommand, controllerIndex, newState);
+    return setState(Mgmt::ESetAdvertisingCommand, controllerIndex, newState);
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------
@@ -201,24 +201,24 @@ bool Mgmt::setAdvertising(uint8_t newState)
 // `name` is returned.
 std::string Mgmt::truncateName(const std::string &name)
 {
-	if (name.length() <= kMaxAdvertisingNameLength)
-	{
-		return name;
-	}
+    if (name.length() <= kMaxAdvertisingNameLength)
+    {
+        return name;
+    }
 
-	return name.substr(0, kMaxAdvertisingNameLength);
+    return name.substr(0, kMaxAdvertisingNameLength);
 }
 
 // Truncates the string `name` to the maximum allowed length for an adapter short-name. If `name` needs no truncation, a copy
 // of `name` is returned.
 std::string Mgmt::truncateShortName(const std::string &name)
 {
-	if (name.length() <= kMaxAdvertisingShortNameLength)
-	{
-		return name;
-	}
+    if (name.length() <= kMaxAdvertisingShortNameLength)
+    {
+        return name;
+    }
 
-	return name.substr(0, kMaxAdvertisingShortNameLength);
+    return name.substr(0, kMaxAdvertisingShortNameLength);
 }
 
 }; // namespace ggk

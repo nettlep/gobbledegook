@@ -70,14 +70,14 @@ DBusInterface::~DBusInterface()
 // Returns the name of this interface (ex: "org.freedesktop.DBus.Properties")
 const std::string &DBusInterface::getName() const
 {
-	return name;
+    return name;
 }
 
 // Sets the name of the interface (ex: "org.freedesktop.DBus.Properties")
 DBusInterface &DBusInterface::setName(const std::string &name)
 {
-	this->name = name;
-	return *this;
+    this->name = name;
+    return *this;
 }
 
 //
@@ -87,19 +87,19 @@ DBusInterface &DBusInterface::setName(const std::string &name)
 // Returns the owner (DBusObject) of this interface
 DBusObject &DBusInterface::getOwner() const
 {
-	return owner;
+    return owner;
 }
 
 // Returns the path node of this interface's owner
 DBusObjectPath DBusInterface::getPathNode() const
 {
-	return owner.getPathNode();
+    return owner.getPathNode();
 }
 
 // Returns the full path of this interface's owner
 DBusObjectPath DBusInterface::getPath() const
 {
-	return owner.getPath();
+    return owner.getPath();
 }
 
 //
@@ -111,8 +111,8 @@ DBusObjectPath DBusInterface::getPath() const
 // This method returns a reference to `this` in order to enable chaining inside the server description.
 DBusInterface &DBusInterface::addMethod(const std::string &name, const char *pInArgs[], const char *pOutArgs, DBusMethod::Callback callback)
 {
-	methods.push_back(DBusMethod(this, name, pInArgs, pOutArgs, callback));
-	return *this;
+    methods.push_back(DBusMethod(this, name, pInArgs, pOutArgs, callback));
+    return *this;
 }
 
 // Calls a named method on this interface
@@ -124,16 +124,16 @@ DBusInterface &DBusInterface::addMethod(const std::string &name, const char *pIn
 // their subclass type.
 bool DBusInterface::callMethod(const std::string &methodName, GDBusConnection *pConnection, GVariant *pParameters, GDBusMethodInvocation *pInvocation, gpointer pUserData) const
 {
-	for (const DBusMethod &method : methods)
-	{
-		if (methodName == method.getName())
-		{
-			method.call<DBusInterface>(pConnection, getPath(), getName(), methodName, pParameters, pInvocation, pUserData);
-			return true;
-		}
-	}
+    for (const DBusMethod &method : methods)
+    {
+        if (methodName == method.getName())
+        {
+            method.call<DBusInterface>(pConnection, getPath(), getName(), methodName, pParameters, pInvocation, pUserData);
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 }
 
 // Add an event to this interface
@@ -147,8 +147,8 @@ bool DBusInterface::callMethod(const std::string &methodName, GDBusConnection *p
 // calls to chain.
 DBusInterface &DBusInterface::onEvent(int tickFrequency, void *pUserData, TickEvent::Callback callback)
 {
-	events.push_back(TickEvent(this, tickFrequency, callback, pUserData));
-	return *this;
+    events.push_back(TickEvent(this, tickFrequency, callback, pUserData));
+    return *this;
 }
 
 // Ticks each event within this interface
@@ -159,38 +159,38 @@ DBusInterface &DBusInterface::onEvent(int tickFrequency, void *pUserData, TickEv
 // their subclass type.
 void DBusInterface::tickEvents(GDBusConnection *pConnection, void *pUserData) const
 {
-	for (const TickEvent &event : events)
-	{
-		event.tick<DBusInterface>(getPath(), pConnection, pUserData);
-	}
+    for (const TickEvent &event : events)
+    {
+        event.tick<DBusInterface>(getPath(), pConnection, pUserData);
+    }
 }
 
 // Internal method used to generate introspection XML used to describe our services on D-Bus
 std::string DBusInterface::generateIntrospectionXML(int depth) const
 {
-	std::string prefix;
-	prefix.insert(0, depth * 2, ' ');
+    std::string prefix;
+    prefix.insert(0, depth * 2, ' ');
 
-	std::string xml = std::string();
+    std::string xml = std::string();
 
-	if (methods.empty())
-	{
-		xml += prefix + "<interface name='" + getName() + "' />\n";
-	}
-	else
-	{
-		xml += prefix + "<interface name='" + getName() + "'>\n";
+    if (methods.empty())
+    {
+        xml += prefix + "<interface name='" + getName() + "' />\n";
+    }
+    else
+    {
+        xml += prefix + "<interface name='" + getName() + "'>\n";
 
-		// Describe our methods
-		for (const DBusMethod &method : methods)
-		{
-			xml += method.generateIntrospectionXML(depth + 1);
-		}
+        // Describe our methods
+        for (const DBusMethod &method : methods)
+        {
+            xml += method.generateIntrospectionXML(depth + 1);
+        }
 
-		xml += prefix + "</interface>\n";
-	}
+        xml += prefix + "</interface>\n";
+    }
 
-	return xml;
+    return xml;
 }
 
 }; // namespace ggk

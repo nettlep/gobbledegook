@@ -47,7 +47,7 @@ GattInterface::~GattInterface()
 // Returns the list of GATT properties
 const std::list<GattProperty> &GattInterface::getProperties() const
 {
-	return properties;
+    return properties;
 }
 
 // When responding to a method, we need to return a GVariant value wrapped in a tuple. This method will simplify this slightly by
@@ -57,11 +57,11 @@ const std::list<GattProperty> &GattInterface::getProperties() const
 // common types.
 void GattInterface::methodReturnVariant(GDBusMethodInvocation *pInvocation, GVariant *pVariant, bool wrapInTuple) const
 {
-	if (wrapInTuple)
-	{
-		pVariant = g_variant_new_tuple(&pVariant, 1);
-	}
-	g_dbus_method_invocation_return_value(pInvocation, pVariant);
+    if (wrapInTuple)
+    {
+        pVariant = g_variant_new_tuple(&pVariant, 1);
+    }
+    g_dbus_method_invocation_return_value(pInvocation, pVariant);
 }
 
 // Locates a `GattProperty` within the interface
@@ -69,49 +69,49 @@ void GattInterface::methodReturnVariant(GDBusMethodInvocation *pInvocation, GVar
 // This method returns a pointer to the property or nullptr if not found
 const GattProperty *GattInterface::findProperty(const std::string &name) const
 {
-	for (const GattProperty &property : properties)
-	{
-		if (property.getName() == name)
-		{
-			return &property;
-		}
-	}
+    for (const GattProperty &property : properties)
+    {
+        if (property.getName() == name)
+        {
+            return &property;
+        }
+    }
 
-	return nullptr;
+    return nullptr;
 }
 
 // Internal method used to generate introspection XML used to describe our services on D-Bus
 std::string GattInterface::generateIntrospectionXML(int depth) const
 {
-	std::string prefix;
-	prefix.insert(0, depth * 2, ' ');
+    std::string prefix;
+    prefix.insert(0, depth * 2, ' ');
 
-	std::string xml = std::string();
+    std::string xml = std::string();
 
-	if (methods.size() && getProperties().empty())
-	{
-		xml += prefix + "<interface name='" + getName() + "' />\n";
-	}
-	else
-	{
-		xml += prefix + "<interface name='" + getName() + "'>\n";
+    if (methods.size() && getProperties().empty())
+    {
+        xml += prefix + "<interface name='" + getName() + "' />\n";
+    }
+    else
+    {
+        xml += prefix + "<interface name='" + getName() + "'>\n";
 
-		// Describe our methods
-		for (const DBusMethod &method : methods)
-		{
-			xml += method.generateIntrospectionXML(depth + 1);
-		}
+        // Describe our methods
+        for (const DBusMethod &method : methods)
+        {
+            xml += method.generateIntrospectionXML(depth + 1);
+        }
 
-		// Describe our properties
-		for (const GattProperty &property : getProperties())
-		{
-			xml += property.generateIntrospectionXML(depth + 1);
-		}
+        // Describe our properties
+        for (const GattProperty &property : getProperties())
+        {
+            xml += property.generateIntrospectionXML(depth + 1);
+        }
 
-		xml += prefix + "</interface>\n";
-	}
+        xml += prefix + "</interface>\n";
+    }
 
-	return xml;
+    return xml;
 }
 
 }; // namespace ggk
